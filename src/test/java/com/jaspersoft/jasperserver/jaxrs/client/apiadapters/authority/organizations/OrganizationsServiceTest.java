@@ -13,7 +13,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.AssertJUnit.assertSame;
 
-
 @PrepareForTest({OrganizationsService.class})
 public class OrganizationsServiceTest extends PowerMockTestCase {
 

@@ -64,6 +64,7 @@ public class ErrorDescriptor {
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
+
     @XmlElementWrapper(name = "parameters")
     @XmlElement(name = "parameter")
     public String[] getParameters() {

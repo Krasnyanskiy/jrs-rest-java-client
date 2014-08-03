@@ -52,19 +52,19 @@ public class ImportTaskRequestAdapter extends AbstractAdapter {
         return this;
     }
 
-     public OperationResult<StateDto> create(File zipArchive) {
-        return createImport(zipArchive);
-     }
-
-     public OperationResult<StateDto> create(InputStream zipArchive) {
+    public OperationResult<StateDto> create(File zipArchive) {
         return createImport(zipArchive);
     }
 
-     public <R> RequestExecution asyncCreate(final File zipArchive, final Callback<OperationResult<StateDto>, R> callback) {
+    public OperationResult<StateDto> create(InputStream zipArchive) {
+        return createImport(zipArchive);
+    }
+
+    public <R> RequestExecution asyncCreate(final File zipArchive, final Callback<OperationResult<StateDto>, R> callback) {
         return asyncCreateImport(zipArchive, callback);
     }
 
-     public <R> RequestExecution asyncCreate(final InputStream zipArchive, final Callback<OperationResult<StateDto>, R> callback) {
+    public <R> RequestExecution asyncCreate(final InputStream zipArchive, final Callback<OperationResult<StateDto>, R> callback) {
         return asyncCreateImport(zipArchive, callback);
     }
 
@@ -83,7 +83,6 @@ public class ImportTaskRequestAdapter extends AbstractAdapter {
                 callback.execute(request.post(zipArchive));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }

@@ -35,5 +35,7 @@ public final class ConnectionMediaType {
     public static final String XLS_FILE_JSON = "application/connections.xlsFile+json";
     public static final String XLS_FILE_XML = "application/connections.xlsFile+xml";
 
-    private ConnectionMediaType(){}
+    private ConnectionMediaType(){
+
+    }
 }

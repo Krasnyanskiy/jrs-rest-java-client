@@ -1,6 +1,9 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.exportservice;
 
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ExportFailedException;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
@@ -8,6 +11,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.common.ErrorDescriptor;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.StateDto;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -17,8 +21,11 @@ import org.testng.annotations.Test;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -28,7 +35,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.exportservice.ExportRequestAdapter}
+ * Unit tests for {@link ExportRequestAdapter}
  */
 @PrepareForTest({ExportRequestAdapter.class, JerseyRequest.class})
 public class ExportRequestAdapterTest extends PowerMockTestCase {
@@ -50,6 +57,12 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
     private OperationResult<InputStream> operationResultInputStreamMock;
+
+    @Mock
+    private Callback<OperationResult<InputStream>, Object> callback;
+
+    @Mock
+    private RequestBuilder<InputStream> streamRequestBuilderMock;
 
     private ExportRequestAdapter adapterSpy;
     private String taskId = "njkhfs8374";
@@ -185,6 +198,123 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         // Than
         assertNotNull(retrieved);
         assertSame(retrieved, operationResultInputStreamMock);
+    }
+
+    @Test
+    public void should_return_RequestExecution_with_finished_operation() {
+
+        // Given
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        Object resultMock = PowerMockito.mock(Object.class);
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(InputStream.class),
+                        eq(new String[]{"/export", taskId, "/exportFile"})))
+                .thenReturn(requestInputStreamMock);
+
+        PowerMockito.doReturn(streamRequestBuilderMock).when(requestStateDtoMock).setAccept("application/zip");
+        PowerMockito.doReturn(operationResultStateDtoMock).when(adapterSpy).state();
+        PowerMockito.doReturn(stateMock).when(operationResultStateDtoMock).getEntity();
+        PowerMockito.doReturn("finished").when(stateMock).getPhase();
+        PowerMockito.doReturn(operationResultInputStreamMock).when(requestInputStreamMock).get();
+        PowerMockito.doReturn(resultMock).when(callback).execute(operationResultInputStreamMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncFetch(callback);
+
+        // Than
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(InputStream.class),
+                eq(new String[]{"/export", taskId, "/exportFile"}));
+
+        Mockito.verify(callback, times(1)).execute(operationResultInputStreamMock);
+        Mockito.verify(operationResultStateDtoMock, times(1)).getEntity();
+        Mockito.verify(stateMock, times(1)).getPhase();
+        Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
+    }
+
+    @Test (timeOut = 2000)
+    public void should_create_resource_with_waiting_while_op_result_is_ready() throws Exception {
+
+        /*
+        // Given
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        Object resultMock = PowerMockito.mock(Object.class);
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(InputStream.class),
+                        eq(new String[]{"/export", taskId, "/exportFile"})))
+                .thenReturn(requestInputStreamMock);
+
+        PowerMockito.doReturn(streamRequestBuilderMock).when(requestStateDtoMock).setAccept("application/zip");
+        PowerMockito.doReturn(operationResultStateDtoMock).doReturn(operationResultStateDtoMock).when(adapterSpy).state();
+        PowerMockito.doReturn(stateMock).doReturn(stateMock).when(operationResultStateDtoMock).getEntity();
+        PowerMockito.doReturn("inprogress").doReturn("ready").doReturn("finished").when(stateMock).getPhase();
+        PowerMockito.doReturn(operationResultInputStreamMock).when(requestInputStreamMock).get();
+        PowerMockito.doReturn(resultMock).when(callback).execute(operationResultInputStreamMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncFetch(callback);
+
+        // Than
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(InputStream.class),
+                eq(new String[]{"/export", taskId, "/exportFile"}));
+
+        Mockito.verify(callback, times(1)).execute(operationResultInputStreamMock);
+        Mockito.verify(operationResultStateDtoMock, times(2)).getEntity();
+        Mockito.verify(stateMock, times(3)).getPhase();
+        Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
+        */
+    }
+
+
+    @Test (timeOut = 750)
+    public void should_throw_en_exception_when_fetching_failed() throws Exception {
+
+        // Given
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+        ErrorDescriptor descriptorMock = PowerMockito.mock(ErrorDescriptor.class);
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(InputStream.class),
+                        eq(new String[]{"/export", taskId, "/exportFile"})))
+                .thenReturn(requestInputStreamMock);
+
+        PowerMockito.doReturn(streamRequestBuilderMock).when(requestStateDtoMock).setAccept("application/zip");
+        PowerMockito.doReturn(operationResultStateDtoMock).when(adapterSpy).state();
+        PowerMockito.doReturn(stateMock).when(operationResultStateDtoMock).getEntity();
+        PowerMockito.doReturn(descriptorMock).when(stateMock).getErrorDescriptor();
+        PowerMockito.doReturn("inprogress").doReturn("failed").doReturn("finished").when(stateMock).getPhase();
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncFetch(callback);
+
+        // Than
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(InputStream.class),
+                eq(new String[]{"/export", taskId, "/exportFile"}));
+
+        Mockito.verify(operationResultStateDtoMock, times(1)).getEntity();
+        Mockito.verify(stateMock, times(2)).getPhase();
+        Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
     }
 
     @AfterMethod

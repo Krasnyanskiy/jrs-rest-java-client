@@ -2,24 +2,32 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.import
 
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.StateDto;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -35,9 +43,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.importservice.ImportTaskRequestAdapter}
- *
- * @author Alexander Krasnyanskiy
+ * Unit tests for {@link ImportTaskRequestAdapter}
  */
 @PrepareForTest({JerseyRequest.class, ImportTaskRequestAdapter.class})
 public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
@@ -46,7 +52,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
     private File fileMock;
 
     @Mock
-    private SessionStorage storageMock;
+    private SessionStorage sessionStorageMock;
 
     @Mock
     private JerseyRequest<StateDto> requestStateDtoMock;
@@ -56,6 +62,12 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
     private Callback<OperationResult<StateDto>, Object> callbackMock;
+
+    @Mock
+    private MultivaluedHashMap<String, String> mapMock;
+
+    @Mock
+    private RequestBuilder<StateDto> requestBuilderMock;
 
     @BeforeMethod
     public void after() {
@@ -67,7 +79,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
     public void should_add_param_to_private_field() throws IllegalAccessException {
 
         // When
-        ImportTaskRequestAdapter expected = spy(new ImportTaskRequestAdapter(storageMock));
+        ImportTaskRequestAdapter expected = spy(new ImportTaskRequestAdapter(sessionStorageMock));
         ImportTaskRequestAdapter retrieved = expected.parameter(ImportParameter.INCLUDE_ACCESS_EVENTS, Boolean.TRUE);
 
         Field field = field(ImportTaskRequestAdapter.class, "params");
@@ -87,7 +99,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
     public void should_invoke_private_method_and_return_op_result() throws Exception {
 
         // Given
-        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(storageMock));
+        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
         doReturn(operationResultStateDtoMock).when(adapter, "createImport", fileMock);
 
         // When
@@ -105,7 +117,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
         InputStream streamMock = mock(InputStream.class);
 
         // Given
-        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(storageMock));
+        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
         doReturn(operationResultStateDtoMock).when(adapter, "createImport", streamMock);
 
         // When
@@ -122,7 +134,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
 
         // Given
         RequestExecution requestExecutionMock = mock(RequestExecution.class);
-        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(storageMock));
+        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
         doReturn(requestExecutionMock).when(adapter, "asyncCreateImport", fileMock, callbackMock);
 
         // When
@@ -139,7 +151,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
         // Given
         RequestExecution requestExecutionMock = mock(RequestExecution.class);
         InputStream streamMock = mock(InputStream.class);
-        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(storageMock));
+        ImportTaskRequestAdapter adapter = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
         doReturn(requestExecutionMock).when(adapter, "asyncCreateImport", streamMock, callbackMock);
 
         // When
@@ -151,8 +163,92 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, requestExecutionMock);
     }
 
+    @Test
+    public void should_execute_create_operation_asynchronously() throws Exception {
+
+        // Given
+        Object resultMock = PowerMockito.mock(Object.class);
+        ImportTaskRequestAdapter requestAdapterSpy = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
+
+        PowerMockito.whenNew(MultivaluedHashMap.class).withNoArguments().thenReturn(mapMock);
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(StateDto.class),
+                        eq(new String[]{"/import"})))
+                .thenReturn(requestStateDtoMock);
+
+        InOrder inOrder = Mockito.inOrder(requestStateDtoMock);
+
+        PowerMockito.doReturn(requestBuilderMock).when(requestStateDtoMock).setContentType("application/zip");
+        PowerMockito.doReturn(requestBuilderMock).when(requestBuilderMock).addParams(mapMock);
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).post(fileMock);
+        PowerMockito.doReturn(resultMock).when(callbackMock).execute(operationResultStateDtoMock);
+
+        // When
+        RequestExecution retrieved = requestAdapterSpy.asyncCreate(fileMock, callbackMock);
+
+        // Than
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotNull(resultMock);
+
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(StateDto.class),
+                eq(new String[]{"/import"}));
+
+        Mockito.verify(callbackMock, times(1)).execute(operationResultStateDtoMock);
+
+        inOrder.verify(requestStateDtoMock, times(1)).setContentType("application/zip");
+        inOrder.verify(requestStateDtoMock, times(1)).post(fileMock);
+
+        Mockito.verifyNoMoreInteractions(requestStateDtoMock);
+        Mockito.verifyNoMoreInteractions(callbackMock);
+    }
+
+    @Test
+    public void should_create_resource_and_return_proper_op_result() throws Exception {
+
+        // Given
+        ImportTaskRequestAdapter requestAdapterSpy = PowerMockito.spy(new ImportTaskRequestAdapter(sessionStorageMock));
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(StateDto.class),
+                        eq(new String[]{"/import"}),
+                        any(DefaultErrorHandler.class)))
+                .thenReturn(requestStateDtoMock);
+
+        PowerMockito.doReturn(requestBuilderMock).when(requestStateDtoMock).setContentType("application/zip");
+        PowerMockito.doReturn(requestBuilderMock).when(requestBuilderMock).addParams(mapMock);
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).post(fileMock);
+
+        InOrder inOrder = Mockito.inOrder(requestStateDtoMock);
+
+        // When
+        OperationResult<StateDto> retrieved = requestAdapterSpy.create(fileMock);
+
+        // Than
+        Assert.assertSame(retrieved, operationResultStateDtoMock);
+
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(StateDto.class),
+                eq(new String[]{"/import"}),
+                any(DefaultErrorHandler.class));
+
+        inOrder.verify(requestStateDtoMock, times(1)).setContentType("application/zip");
+        inOrder.verify(requestStateDtoMock, times(1)).post(fileMock);
+    }
+
     @AfterMethod
     public void before() {
-        reset(storageMock, requestStateDtoMock, operationResultStateDtoMock, callbackMock);
+        reset(sessionStorageMock, requestStateDtoMock, operationResultStateDtoMock, callbackMock,
+                mapMock, requestBuilderMock);
     }
 }

@@ -1,14 +1,21 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.exportservice;
 
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.ExportTaskDto;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.StateDto;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -17,6 +24,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -34,19 +42,31 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.apiadapters.importexport.exportservice.ExportTaskAdapter}
+ * Unit tests for {@link ExportTaskAdapter}
  */
-@PrepareForTest({JerseyRequest.class})
+@PrepareForTest({JerseyRequest.class, ExportTaskAdapter.class, ExportTaskDto.class})
 public class ExportTaskAdapterTest extends PowerMockTestCase {
 
     @Mock
-    private SessionStorage storageMock;
+    private SessionStorage sessionStorageMock;
 
     @Mock
     private JerseyRequest<StateDto> requestStateDtoMock;
 
     @Mock
     private OperationResult<StateDto> operationResultStateDtoMock;
+
+    @Mock
+    private Callback<OperationResult<StateDto>, Object> callbackMock;
+
+    @Mock
+    private RequestBuilder<StateDto> requestBuilderMock;
+
+    @Mock
+    private ExportTaskDto taskDtoMock;
+
+    @Mock
+    private ExportTaskDto taskDtoCopyMock;
 
     @BeforeMethod
     public void after() {
@@ -57,12 +77,12 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
     public void should_create_an_object_and_prepare_ExportTaskDto_field() throws IllegalAccessException {
 
         // When
-        ExportTaskAdapter adapter = new ExportTaskAdapter(storageMock);
+        ExportTaskAdapter adapter = new ExportTaskAdapter(sessionStorageMock);
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
         Object retrievedField = field.get(adapter);
 
         // Than
-        assertSame(adapter.getSessionStorage(), storageMock);
+        assertSame(adapter.getSessionStorage(), sessionStorageMock);
         assertNotNull(retrievedField);
         assertTrue(instanceOf(ExportTaskDto.class).matches(retrievedField));
 
@@ -74,7 +94,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
 
     @Test(testName = "role")
     public void should_add_new_role_to_roles_of_ExportTaskDto() throws IllegalAccessException {
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
         ExportTaskAdapter retrievedAdapter = adapter.role("newRole");
 
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -95,7 +115,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
             add("SlugRole");
         }};
 
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
 
         // When
         ExportTaskAdapter retrievedAdapter = adapter.roles(fakeRoles);
@@ -112,7 +132,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
 
     @Test(testName = "user")
     public void should_add_single_user_to_userList_of_ExportTaskDto() throws IllegalAccessException {
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
         ExportTaskAdapter retrievedAdapter = adapter.user("newUser");
 
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -134,7 +154,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
             add("Katy");
         }};
 
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
 
         // When
         ExportTaskAdapter retrievedAdapter = adapter.users(girls);
@@ -151,7 +171,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
 
     @Test(testName = "uri")
     public void should_add_a_single_uri_to_uriList_of_ExportTaskDto() throws IllegalAccessException {
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
         ExportTaskAdapter retrievedAdapter = adapter.uri("newUri");
 
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -171,7 +191,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
             add("secondUri");
         }};
 
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
 
         ExportTaskAdapter retrievedAdapter = adapter.uris(uris);
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -187,7 +207,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
     @Test(testName = "parameter")
     public void should_add_a_single_parameter_to_parameters_of_ExportTaskDto() throws IllegalAccessException {
 
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
         ExportTaskAdapter retrievedAdapter = adapter.parameter(ExportParameter.INCLUDE_MONITORING_EVENTS);
 
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -208,7 +228,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
             add(ExportParameter.INCLUDE_ACCESS_EVENTS);
         }};
 
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
 
         ExportTaskAdapter retrievedAdapter = adapter.parameters(params);
         Field field = field(ExportTaskAdapter.class, "exportTaskDto");
@@ -225,9 +245,9 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
     public void should_return_not_null_op_result() throws IllegalAccessException {
 
         // Given
-        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(storageMock));
+        ExportTaskAdapter adapter = spy(new ExportTaskAdapter(sessionStorageMock));
         mockStatic(JerseyRequest.class);
-        when(JerseyRequest.buildRequest(eq(storageMock), eq(StateDto.class), eq(new String[]{"/export"}),
+        when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(StateDto.class), eq(new String[]{"/export"}),
                 any(DefaultErrorHandler.class)))
                 .thenReturn(requestStateDtoMock);
 
@@ -242,8 +262,47 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, operationResultStateDtoMock);
     }
 
+    @Test
+    public void should_esecute_create_operation_asynchronously() throws Exception {
+
+        // Given
+        ExportTaskAdapter taskAdapterSpy = PowerMockito.spy(new ExportTaskAdapter(sessionStorageMock));
+
+        PowerMockito.whenNew(ExportTaskDto.class).withArguments(any((ExportTaskDto.class))).thenReturn(taskDtoCopyMock);
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(StateDto.class),
+                        eq(new String[]{"/export"})))
+                .thenReturn(requestStateDtoMock);
+
+        PowerMockito.doReturn(requestBuilderMock).when(requestStateDtoMock).setAccept("application/zip");
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).post(taskDtoCopyMock);
+
+        InOrder inOrder = Mockito.inOrder(requestStateDtoMock);
+
+        // When
+        RequestExecution retrieved = taskAdapterSpy.asyncCreate(callbackMock);
+
+        // Than
+        Assert.assertNotNull(retrieved);
+
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(StateDto.class),
+                eq(new String[]{"/export"}));
+
+        inOrder.verify(requestStateDtoMock, times(1)).setAccept("application/zip");
+        inOrder.verify(requestStateDtoMock, times(1)).post(taskDtoCopyMock);
+
+    }
+
     @AfterMethod
     public void before() {
-        reset(storageMock, requestStateDtoMock, operationResultStateDtoMock);
+        reset(sessionStorageMock, requestStateDtoMock, operationResultStateDtoMock, requestBuilderMock,
+                taskDtoMock, callbackMock, taskDtoCopyMock);
     }
 }

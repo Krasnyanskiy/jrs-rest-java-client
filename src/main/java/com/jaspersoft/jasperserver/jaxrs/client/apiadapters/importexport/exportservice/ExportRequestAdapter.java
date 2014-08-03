@@ -77,9 +77,7 @@ public class ExportRequestAdapter extends AbstractAdapter {
             }
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException ignored) {
-                // NOP
-            }
+            } catch (InterruptedException ignored) {/* NOP */}
         }
         JerseyRequest<InputStream> request = buildRequest(sessionStorage, InputStream.class, new String[]{"/export", taskId, "/exportFile"});
         request.setAccept("application/zip");

@@ -137,25 +137,32 @@ public class BatchRolesRequestAdapterTest extends PowerMockTestCase {
         inOrder.verify(jerseyRequestMock, times(1)).get();
     }
 
-    @Test
+    @Test (timeOut = 2500)
     public void asyncGet() throws Exception {
 
         // Given
-        mockStatic(JerseyRequest.class);
-        when(buildRequest(eq(sessionStorageMock), eq(RolesListWrapper.class), eq(new String[]{"/organizations/9454/roles"}), any(DefaultErrorHandler.class))).thenReturn(jerseyRequestMock);
-        whenNew(MultivaluedHashMap.class).withNoArguments().thenReturn(mapMock);
-        doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
-        doReturn(expectedOpResultMock).when(callbackMock).execute(expectedOpResultMock);
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito
+                .when(buildRequest(
+                        eq(sessionStorageMock),
+                        eq(RolesListWrapper.class),
+                        eq(new String[]{"/organizations/9454/roles"}),
+                        any(DefaultErrorHandler.class)))
+                .thenReturn(jerseyRequestMock);
+
+        PowerMockito.whenNew(MultivaluedHashMap.class).withNoArguments().thenReturn(mapMock);
+        PowerMockito.doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
+        PowerMockito.doReturn(expectedOpResultMock).when(callbackMock).execute(expectedOpResultMock);
 
         // When
         BatchRolesRequestAdapter adapter = new BatchRolesRequestAdapter(sessionStorageMock, "9454");
         adapter.asyncGet(callbackMock);
 
         // Than
-        verifyStatic(times(1));
+        PowerMockito.verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(RolesListWrapper.class), eq(new String[]{"/organizations/9454/roles"}), any(DefaultErrorHandler.class));
-        verify(jerseyRequestMock, times(1)).addParams(mapMock);
-        verify(callbackMock, times(1)).execute(expectedOpResultMock);
+        Mockito.verify(jerseyRequestMock, times(1)).addParams(mapMock);
+        Mockito.verify(callbackMock, times(1)).execute(expectedOpResultMock);
     }
 
     @AfterMethod

@@ -65,7 +65,6 @@ public class SingleOrganizationAdapterTest extends PowerMockTestCase {
         assertEquals(RETRIEVED, EXPECTED);
     }
 
-
     @Test
     public void buildRequest() throws Exception {
 

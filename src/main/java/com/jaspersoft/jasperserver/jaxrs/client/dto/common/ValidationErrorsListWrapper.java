@@ -33,45 +33,45 @@ import java.util.List;
  */
 @XmlRootElement(name = "errors")
 public class ValidationErrorsListWrapper {
-	
+
     private List<ValidationError> errors;
 
-	public ValidationErrorsListWrapper() {
-		errors = new ArrayList<ValidationError>();
-	}
+    public ValidationErrorsListWrapper() {
+        errors = new ArrayList<ValidationError>();
+    }
 
-    @XmlElement(name =  "error")
-	public List<ValidationError> getErrors() {
-		return errors;
-	}
+    @XmlElement(name = "error")
+    public List<ValidationError> getErrors() {
+        return errors;
+    }
 
     public void setErrors(List<ValidationError> errors) {
         this.errors = errors;
     }
 
-	public void add(ValidationError error) {
-		errors.add(error);
-	}
-	
-	public void removeError(String code, String field) {
-		for (Iterator it = errors.iterator(); it.hasNext();) {
-			ValidationError error = (ValidationError) it.next();
-			if (matches(error, code, field)) {
-				it.remove();
-			}
-		}
-	}
+    public void add(ValidationError error) {
+        errors.add(error);
+    }
 
-	protected boolean matches(ValidationError error, String code, String field) {
-		return code.equals(error.getErrorCode())
-				&& field.equals(error.getField());
-	}
+    public void removeError(String code, String field) {
+        for (Iterator it = errors.iterator(); it.hasNext(); ) {
+            ValidationError error = (ValidationError) it.next();
+            if (matches(error, code, field)) {
+                it.remove();
+            }
+        }
+    }
+
+    protected boolean matches(ValidationError error, String code, String field) {
+        return code.equals(error.getErrorCode())
+                && field.equals(error.getField());
+    }
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append(errors.size());
         sb.append(" error(s)\n");
-        for (Iterator it = errors.iterator(); it.hasNext();) {
+        for (Iterator it = errors.iterator(); it.hasNext(); ) {
             ValidationError error = (ValidationError) it.next();
             sb.append(error.toString());
             sb.append('\n');
