@@ -94,39 +94,35 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
     @Test
     public void asyncCreateOrUpdate() throws Exception {
 
-        /*
         // Given
-        SingleRoleRequestAdapter adapterSpy = spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
-        doReturn(request2).when(adapterSpy, "buildRequest", RolesListWrapper.class);
+        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
+        PowerMockito.doReturn(request2).when(adapterSpy, "buildRequest", RolesListWrapper.class);
         PowerMockito.doReturn(result2).when(request2).put(roleMock);
-        doReturn(result2).when(callback2).execute(result2);
+        PowerMockito.doReturn(result2).when(callback2).execute(result2);
 
         // When
         adapterSpy.asyncCreateOrUpdate(roleMock, callback2);
 
         // Than
-        verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(RolesListWrapper.class));
-        verify(callback2, times(1)).execute(result2);
-        */
+        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(RolesListWrapper.class));
+        Mockito.verify(callback2, times(1)).execute(result2);
     }
 
     @Test
     public void asyncGet() throws Exception {
 
-        /*
         // Given
-        SingleRoleRequestAdapter adapterSpy = spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
-        doReturn(jerseyRequestMock).when(adapterSpy, "buildRequest", ClientRole.class);
+        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
+        PowerMockito.doReturn(jerseyRequestMock).when(adapterSpy, "buildRequest", ClientRole.class);
         PowerMockito.doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
-        doReturn(expectedOpResultMock).when(callbackMock).execute(expectedOpResultMock);
+        PowerMockito.doReturn(expectedOpResultMock).when(callbackMock).execute(expectedOpResultMock);
 
         // When
         adapterSpy.asyncGet(callbackMock);
 
         // Than
-        verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(ClientRole.class));
-        verify(callbackMock, times(1)).execute(expectedOpResultMock);
-        */
+        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(ClientRole.class));
+        Mockito.verify(callbackMock, times(1)).execute(expectedOpResultMock);
     }
 
     @Test

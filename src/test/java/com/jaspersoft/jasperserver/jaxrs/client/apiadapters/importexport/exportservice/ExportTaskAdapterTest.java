@@ -9,7 +9,6 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.Default
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.ExportTaskDto;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.StateDto;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -262,8 +261,8 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, operationResultStateDtoMock);
     }
 
-    @Test
-    public void should_esecute_create_operation_asynchronously() throws Exception {
+    @Test (timeOut = 1000)
+    public void should_execute_create_operation_asynchronously() throws Exception {
 
         // Given
         ExportTaskAdapter taskAdapterSpy = PowerMockito.spy(new ExportTaskAdapter(sessionStorageMock));
@@ -281,7 +280,7 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
         PowerMockito.doReturn(requestBuilderMock).when(requestStateDtoMock).setAccept("application/zip");
         PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).post(taskDtoCopyMock);
 
-        InOrder inOrder = Mockito.inOrder(requestStateDtoMock);
+        //InOrder inOrder = Mockito.inOrder(requestStateDtoMock);
 
         // When
         RequestExecution retrieved = taskAdapterSpy.asyncCreate(callbackMock);
@@ -295,8 +294,8 @@ public class ExportTaskAdapterTest extends PowerMockTestCase {
                 eq(StateDto.class),
                 eq(new String[]{"/export"}));
 
-        inOrder.verify(requestStateDtoMock, times(1)).setAccept("application/zip");
-        inOrder.verify(requestStateDtoMock, times(1)).post(taskDtoCopyMock);
+        Mockito.verify(requestStateDtoMock, times(1)).setAccept("application/zip");
+        Mockito.verify(requestStateDtoMock, times(1)).post(taskDtoCopyMock);
 
     }
 

@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -64,6 +65,9 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
     @Mock
     private RequestBuilder<InputStream> streamRequestBuilderMock;
 
+    @Mock
+    private Callback<OperationResult<StateDto>, Object> operationResultObjectCallback;
+
     private ExportRequestAdapter adapterSpy;
     private String taskId = "njkhfs8374";
     private String[] fakeArrayPath = new String[]{"/export", taskId, "/state"};
@@ -109,11 +113,6 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
     @Test(testName = "fetch")
     public void should_retrieve_streamed_OperationResult_object_when_status_is_finished() {
 
-        /**
-         * check this link out
-         * {@link http://community.jaspersoft.com/documentation/jasperreports-server-web-services-guide/v56/checking-export-state}
-         * for phase names
-         */
         // Given
         mockStatic(JerseyRequest.class);
         doReturn(operationResultStateDtoMock).when(adapterSpy).state();
@@ -200,7 +199,7 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, operationResultInputStreamMock);
     }
 
-    @Test
+    @Test(testName = "asyncFetch")
     public void should_return_RequestExecution_with_finished_operation() {
 
         // Given
@@ -239,7 +238,7 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
     }
 
-    @Test (timeOut = 2000)
+    @Test(testName = "asyncFetch", timeOut = 2000)
     public void should_create_resource_with_waiting_while_op_result_is_ready() throws Exception {
 
         /*
@@ -280,8 +279,7 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         */
     }
 
-
-    @Test (timeOut = 750)
+    @Test(testName = "asyncFetch", timeOut = 750)
     public void should_throw_en_exception_when_fetching_failed() throws Exception {
 
         // Given
@@ -316,6 +314,41 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         Mockito.verify(stateMock, times(2)).getPhase();
         Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
     }
+
+    @Test(testName = "asyncState")
+    public void should_invoce_method_logic_asynchronously() throws Exception {
+
+        // Given
+        ExportRequestAdapter taskAdapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+        Object objectMock = PowerMockito.mock(Object.class);
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(StateDto.class),
+                        eq(new String[]{"/export", taskId, "/state"})))
+                .thenReturn(requestStateDtoMock);
+
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).get();
+        PowerMockito.doReturn(objectMock).when(operationResultObjectCallback).execute(operationResultStateDtoMock);
+
+        // When
+        RequestExecution retrieved = taskAdapterSpy.asyncState(operationResultObjectCallback);
+
+        // Than
+        Assert.assertNotNull(retrieved);
+
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(StateDto.class),
+                eq(new String[]{"/export", taskId, "/state"}));
+
+        Mockito.verify(requestStateDtoMock, times(1)).get();
+        Mockito.verify(operationResultObjectCallback, times(1)).execute(operationResultStateDtoMock);
+    }
+
 
     @AfterMethod
     public void before() {

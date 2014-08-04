@@ -163,7 +163,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, requestExecutionMock);
     }
 
-    @Test
+    @Test(timeOut = 1000)
     public void should_execute_create_operation_asynchronously() throws Exception {
 
         // Given

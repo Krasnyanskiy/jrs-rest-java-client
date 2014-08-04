@@ -11,6 +11,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.ThreadPoolUtil;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -139,13 +140,13 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
     @Test
     @SuppressWarnings("unchecked")
     public void asyncGet() throws Exception {
-        /*
+
         // Given
         //PowerMockito.mockStatic(ThreadPoolUtil.class);
         //PowerMockito.doNothing().when(ThreadPoolUtil.class, "runAsynchronously", any(RequestExecution.class));
 
         StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
-        BatchAttributeAdapter adapterSpy = spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
         MultivaluedMap<String, String> params = (MultivaluedMap<String, String>) Whitebox.getInternalState(adapterSpy, "params");
 
         PowerMockito.doReturn(requestMock).when(adapterSpy, "request");
@@ -157,13 +158,12 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         adapterSpy.asyncGet(callbackMock);
 
         // Than
-        verifyPrivate(adapterSpy, times(1)).invoke("request");
-        verify(callbackMock, times(1)).execute(operationResultMock);
-        PowerMockito.verifyNoMoreInteractions(callbackMock);
+        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("request");
+        Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
+        Mockito.verifyNoMoreInteractions(callbackMock);
 
         //PowerMockito.verifyStatic(times(1));
         //ThreadPoolUtil.runAsynchronously(any(RequestExecution.class));
-        */
     }
 
     @Test(suiteName = "refactored method")
@@ -223,10 +223,10 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
     @Test
     public void asyncCreateOrUpdate() throws Exception {
 
-        /*
+
         // Given
         StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
-        BatchAttributeAdapter adapterSpy = spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
 
         PowerMockito.doReturn(requestMock).when(adapterSpy, "request");
         PowerMockito.doReturn(operationResultMock).when(requestMock).put(userAttributesListWrapperMock);
@@ -235,20 +235,21 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         // When
         adapterSpy.asyncCreateOrUpdate(userAttributesListWrapperMock, callbackMock);
 
+        Thread.sleep(500);
+
         // Than
-        verifyPrivate(adapterSpy, times(1)).invoke("request");
-        verify(callbackMock, times(1)).execute(operationResultMock);
-        */
+        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("request");
+        Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
+
     }
 
 
     @Test
     public void asyncDelete() throws Exception {
 
-        /*
         // Given
         StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
-        BatchAttributeAdapter adapterSpy = spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
 
         PowerMockito.doReturn(requestMock).when(adapterSpy, "request");
         PowerMockito.doReturn(operationResultMock).when(requestMock).delete();
@@ -258,9 +259,8 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         adapterSpy.asyncDelete(callbackMock);
 
         // Than
-        verifyPrivate(adapterSpy, times(1)).invoke("request");
-        verify(callbackMock, times(1)).execute(operationResultMock);
-        */
+        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("request");
+        Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
     }
 
     @Test(testName = "private")

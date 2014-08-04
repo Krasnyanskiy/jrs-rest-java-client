@@ -17,11 +17,13 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationRe
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import static java.util.regex.Pattern.compile;
+
 public class SingleUserRequestAdapter extends AbstractAdapter {
 
     private String userUriPrefix;
 
-    private StringBuilder uri = new StringBuilder();
+    private StringBuilder uri = new StringBuilder("");
 
     @Deprecated
     public SingleUserRequestAdapter(SessionStorage sessionStorage, String organizationId, String username) {
@@ -35,9 +37,6 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
 
     /**
      * Use this constructor when you don't need to use v2/attributes Service in your request.
-     *
-     * @param sessionStorage
-     * @param organizationId
      */
     public SingleUserRequestAdapter(SessionStorage sessionStorage, String organizationId) {
         super(sessionStorage);
@@ -51,18 +50,12 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
     /**
      * This constructor is used to retrieve resources by attributes specifying. It's interacts
      * with v2/attributes Service.
-     *
-     * @param userId
-     * @param organizationId
-     * @param sessionStorage
      */
     public SingleUserRequestAdapter(String userId, String organizationId, SessionStorage sessionStorage) {
         super(sessionStorage);
-        if (organizationId != null && !organizationId.equals("")
-                && userId != null && !userId.equals("")) {
+        if (organizationId != null && !organizationId.equals("") && userId != null && !userId.equals("")) {
             uri.append("/organizations/").append(organizationId).append("/users/").append(userId);
-        } else if (organizationId == null && userId != null
-                && !userId.equals("")){
+        } else if (organizationId == null && userId != null && !userId.equals("")) {
             uri.append("/users/").append(userId);
         } else {
             throw new IllegalArgumentException("Wrong parameters has been passed!");
@@ -96,6 +89,12 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
     }
 
     public OperationResult<ClientUser> get(String userId) {
+
+        /* checks if we already have setted userId */
+        if (compile("^.*?users/([^/]+)$").matcher(uri.toString()).find()) {
+            return request().get();
+        }
+
         uri.append(userId);
         return request().get();
     }
@@ -133,14 +132,15 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
 
     public OperationResult<ClientUser> updateOrCreate(ClientUser user) {
         uri.append(user.getUsername());
-        if (!uri.toString().contains("organizations") && user.getTenantId() != null){
+        if (!uri.toString().contains("organizations") && user.getTenantId() != null) {
             uri.insert(0, "/organizations/" + user.getTenantId());
         }
         return request().put(user);
     }
 
     @Deprecated
-    public <R> RequestExecution asyncCreateOrUpdate(final ClientUser user, final Callback<OperationResult<ClientUser>, R> callback) {
+    public <R> RequestExecution asyncCreateOrUpdate(final ClientUser user,
+                                                    final Callback<OperationResult<ClientUser>, R> callback) {
         final JerseyRequest<ClientUser> request = buildRequest();
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
@@ -152,7 +152,9 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
         return task;
     }
 
-    public <R> RequestExecution asyncCreateOrUpdate(final ClientUser user, final Callback<OperationResult<ClientUser>, R> callback, String userId) {
+    public <R> RequestExecution asyncCreateOrUpdate(final ClientUser user,
+                                                    final Callback<OperationResult<ClientUser>, R> callback,
+                                                    final String userId) {
         uri.append(userId);
         final JerseyRequest<ClientUser> request = request();
         RequestExecution task = new RequestExecution(new Runnable() {
@@ -208,11 +210,13 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
 
     @Deprecated
     private JerseyRequest<ClientUser> buildRequest() {
-        return JerseyRequest.buildRequest(sessionStorage, ClientUser.class, new String[]{userUriPrefix}, new DefaultErrorHandler());
+        return JerseyRequest.buildRequest(sessionStorage, ClientUser.class,
+                new String[]{userUriPrefix}, new DefaultErrorHandler());
     }
 
     private JerseyRequest<ClientUser> request() {
-        return JerseyRequest.buildRequest(sessionStorage, ClientUser.class, new String[]{uri.toString()}, new DefaultErrorHandler());
+        return JerseyRequest.buildRequest(sessionStorage, ClientUser.class,
+                new String[]{uri.toString()}, new DefaultErrorHandler());
     }
 
     @Deprecated
