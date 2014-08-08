@@ -43,4 +43,8 @@ public class RequestExecution {
     public void setFuture(Future future) {
         this.future = future;
     }
+
+    public Future getFuture() {
+        return future;
+    }
 }

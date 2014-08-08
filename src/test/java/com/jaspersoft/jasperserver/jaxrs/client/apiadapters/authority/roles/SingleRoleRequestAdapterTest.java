@@ -4,6 +4,7 @@ import com.jaspersoft.jasperserver.dto.authority.ClientRole;
 import com.jaspersoft.jasperserver.dto.authority.RolesListWrapper;
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
@@ -20,14 +21,20 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 
 /**
  * Unit tests for {@link SingleRoleRequestAdapter}
@@ -51,7 +58,7 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
     private OperationResult<ClientRole> expectedOpResultMock;
 
     @Mock
-    private OperationResult<RolesListWrapper> result2;
+    private OperationResult<RolesListWrapper> rolesListWrapperOperationResultMock;
 
     @Mock
     private Callback<OperationResult<ClientRole>, Object> callbackMock;
@@ -60,7 +67,7 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
     private Callback<OperationResult<RolesListWrapper>, Object> callback2;
 
     @Mock
-    private JerseyRequest<RolesListWrapper> request2;
+    private JerseyRequest<RolesListWrapper> rolesListWrapperJerseyRequestMock;
 
     @BeforeMethod
     public void before() {
@@ -74,7 +81,7 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
         assertEquals(roleUriPrefix, "/roles/roleName");
     }
 
-    @Test (timeOut = 2500)
+    @Test(timeOut = 2500)
     public void asyncDelete() throws Exception {
 
         // Given
@@ -92,20 +99,60 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
     }
 
     @Test
+    /**
+     * -- for {@link SingleRoleRequestAdapter#asyncCreateOrUpdate(ClientRole, Callback)}
+     */
     public void asyncCreateOrUpdate() throws Exception {
 
+        /*
         // Given
         SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
-        PowerMockito.doReturn(request2).when(adapterSpy, "buildRequest", RolesListWrapper.class);
-        PowerMockito.doReturn(result2).when(request2).put(roleMock);
-        PowerMockito.doReturn(result2).when(callback2).execute(result2);
+        PowerMockito.doReturn(rolesListWrapperJerseyRequestMock).when(adapterSpy, "buildRequest", RolesListWrapper.class);
+        PowerMockito.doReturn(rolesListWrapperOperationResultMock).when(rolesListWrapperJerseyRequestMock).put(roleMock);
+        PowerMockito.doReturn(rolesListWrapperOperationResultMock).when(callback2).execute(rolesListWrapperOperationResultMock);
 
         // When
         adapterSpy.asyncCreateOrUpdate(roleMock, callback2);
 
         // Than
         PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(RolesListWrapper.class));
-        Mockito.verify(callback2, times(1)).execute(result2);
+        Mockito.verify(callback2, times(1)).execute(rolesListWrapperOperationResultMock);
+        */
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
+
+        final Callback<OperationResult<RolesListWrapper>, Void> callback = spy(new Callback<OperationResult<RolesListWrapper>, Void>() {
+            @Override
+            public Void execute(OperationResult<RolesListWrapper> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(rolesListWrapperJerseyRequestMock).when(adapterSpy, "buildRequest", RolesListWrapper.class);
+        doReturn(rolesListWrapperOperationResultMock).when(rolesListWrapperJerseyRequestMock).put(roleMock);
+        doReturn(null).when(callback).execute(rolesListWrapperOperationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(roleMock, callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(rolesListWrapperOperationResultMock);
+        verify(rolesListWrapperJerseyRequestMock, times(1)).put(roleMock);
     }
 
     @Test

@@ -41,8 +41,7 @@ public class ServerInfoService extends AbstractAdapter {
     }
 
     private JerseyRequest<String> buildServerInfoRequest(String path){
-        JerseyRequest<String> request =
-                JerseyRequest.buildRequest(sessionStorage, String.class, new String[]{"/serverInfo", path});
+        JerseyRequest<String> request = JerseyRequest.buildRequest(sessionStorage, String.class, new String[]{"/serverInfo", path});
         request.setAccept(MediaType.TEXT_PLAIN);
         return request;
     }

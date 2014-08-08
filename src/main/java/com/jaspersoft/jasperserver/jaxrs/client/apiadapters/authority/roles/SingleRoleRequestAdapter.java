@@ -61,12 +61,12 @@ public class SingleRoleRequestAdapter extends AbstractAdapter {
         return buildRequest(RolesListWrapper.class).put(user);
     }
 
-    public <R> RequestExecution asyncCreateOrUpdate(final ClientRole user, final Callback<OperationResult<RolesListWrapper>, R> callback) {
+    public <R> RequestExecution asyncCreateOrUpdate(final ClientRole clientRole, final Callback<OperationResult<RolesListWrapper>, R> callback) {
         final JerseyRequest<RolesListWrapper> request = buildRequest(RolesListWrapper.class);
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
-                callback.execute(request.put(user));
+                callback.execute(request.put(clientRole));
             }
         });
         ThreadPoolUtil.runAsynchronously(task);

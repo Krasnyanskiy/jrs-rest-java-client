@@ -138,8 +138,8 @@ public class JobsServiceTest extends PowerMockTestCase {
         verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Job.class), eq(new String[]{"/jobs"}), any(JobValidationErrorHandler.class));
         verify(jobRequestMock, times(1)).put(reportMock);
-        verify(jobRequestMock, times(1)).setContentType("application/job+xml");
-        verify(jobRequestMock, times(1)).setAccept("application/job+xml");
+        verify(jobRequestMock, times(1)).setContentType("application/job+XML");
+        verify(jobRequestMock, times(1)).setAccept("application/job+XML");
     }
 
     @Test(testName = "scheduleReport_for_v4_7_0")

@@ -57,7 +57,7 @@ public class MimeTypeUtilTest extends PowerMockTestCase {
     public void should_return_proper_content_mime_type() {
         when(configurationMock.getContentMimeType()).thenReturn(MimeType.JSON);
         String retrieved = MimeTypeUtil.toCorrectContentMime(configurationMock, collectionMime);
-        assertEquals(retrieved, "application/collection+json");
+        assertEquals(retrieved, "application/collection+JSON");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class MimeTypeUtilTest extends PowerMockTestCase {
     public void should_return_proper_accept_mime_type() {
         when(configurationMock.getAcceptMimeType()).thenReturn(MimeType.XML);
         String retrieved = MimeTypeUtil.toCorrectAcceptMime(configurationMock, jobMime);
-        assertEquals(retrieved, "application/job+xml");
+        assertEquals(retrieved, "application/job+XML");
     }
 
     @Test

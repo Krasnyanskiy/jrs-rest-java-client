@@ -119,6 +119,13 @@
                         </goals>
                     </execution>
                 </executions>
+<!--                <configuration>
+                    <excludes>
+                        <exclude>
+                            **/com/jaspersoft/jasperserver/jaxrs/client/dto/**
+                        </exclude>
+                    </excludes>
+                </configuration>-->
             </plugin>
 
             <plugin>

@@ -163,7 +163,7 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, requestExecutionMock);
     }
 
-    @Test(timeOut = 1000)
+    @Test(timeOut = 2000)
     public void should_execute_create_operation_asynchronously() throws Exception {
 
         // Given
@@ -198,6 +198,8 @@ public class ImportTaskRequestAdapterTest extends PowerMockTestCase {
                 eq(sessionStorageMock),
                 eq(StateDto.class),
                 eq(new String[]{"/import"}));
+
+        Thread.sleep(500);
 
         Mockito.verify(callbackMock, times(1)).execute(operationResultStateDtoMock);
 

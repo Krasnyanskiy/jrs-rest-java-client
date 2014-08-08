@@ -29,9 +29,8 @@ public class ThreadPoolUtil {
 
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public synchronized static void runAsynchronously(RequestExecution requestExecutionTask){
+    public synchronized static void runAsynchronously(RequestExecution requestExecutionTask) {
         Future<?> future = executorService.submit(requestExecutionTask.getTask());
         requestExecutionTask.setFuture(future);
-        // we don't need 'shutdown' method because we have only one pool which wait for for new tasks recursively
     }
 }

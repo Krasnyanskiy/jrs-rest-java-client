@@ -1,6 +1,8 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.jobs.calendar;
 
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.WithEntityOperationResult;
@@ -28,6 +30,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -78,10 +81,22 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
     private Response responseMock;
 
     @Mock
+    private RequestBuilder<ReportJobCalendar> builderMock;
+
+    @Mock
     private WithEntityOperationResult<Calendar> withEntityOperationResultMock;
 
     @Mock
     private Calendar calendarEntityMock;
+
+    @Mock
+    private Callback<OperationResult<Calendar>, Object> callbackMock;
+
+    @Mock
+    private Callback<OperationResult<ReportJobCalendar>, Object> callbackMock3;
+
+    @Mock
+    private Callback<OperationResult, Object> resultObjectCallbackMock;
 
     private MultivaluedHashMap<String, String> paramsSpy;
 
@@ -137,7 +152,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Given
         mockStatic(JerseyRequest.class);
-        when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class),
+        when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class),
                 eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         doReturn(getResultMock).when(requestMock).get();
         SingleCalendarOperationsAdapter adapterSpy = spy(new SingleCalendarOperationsAdapter(sessionStorageMock,
@@ -149,13 +164,13 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Than
         verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class),
+        buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class),
                 eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
         verifyPrivate(adapterSpy, times(1)).invoke("convertToLocalCalendarType", getResultMock);
         assertSame(retrieved, operationResultMock);
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType1() throws Exception {
 
         // Given
@@ -163,7 +178,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         expected.setCalendarType(CalendarType.base);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
         PowerMockito.doReturn(reportJobCalendarMock).when(getResultMock).getEntity();
@@ -181,7 +196,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         verify(reportJobCalendarMock, times(2)).getCalendarType();
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType2() throws Exception {
 
         // Given
@@ -189,7 +204,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.annual);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(sessionStorageMock, ReportJobCalendar.class, new String[]{"/jobs", "/calendars", "testCalendarName"})).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(sessionStorageMock, ReportJobCalendar.class, new String[]{"/jobs", "/calendars", "testCalendarName"})).thenReturn(requestMock);
         PowerMockito.whenNew(AnnualCalendar.class).withNoArguments().thenReturn((AnnualCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -209,7 +224,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
     }
 
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType3() throws Exception {
 
         // Given
@@ -217,7 +232,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.cron);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.whenNew(CronCalendar.class).withNoArguments().thenReturn((CronCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -236,7 +251,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         verify(reportJobCalendarMock, times(2)).getCalendarType();
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType4() throws Exception {
 
         // Given
@@ -245,7 +260,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.daily);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.whenNew(DailyCalendar.class).withNoArguments().thenReturn((DailyCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -264,7 +279,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         verify(reportJobCalendarMock, times(2)).getCalendarType();
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType5() throws Exception {
 
         // Given
@@ -272,7 +287,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.holiday);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.whenNew(HolidayCalendar.class).withNoArguments().thenReturn((HolidayCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -290,7 +305,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         verify(reportJobCalendarMock, times(2)).getCalendarType();
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType6() throws Exception {
 
         // Given
@@ -298,7 +313,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.monthly);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.whenNew(MonthlyCalendar.class).withNoArguments().thenReturn((MonthlyCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -316,7 +331,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         verify(reportJobCalendarMock, times(2)).getCalendarType();
     }
 
-    @Test(suiteName = "private")
+    @Test(testName = "private")
     public void convertToLocalCalendarType7() throws Exception {
 
         // Given
@@ -324,7 +339,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         Whitebox.setInternalState(expected, "calendarType", CalendarType.weekly);
 
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.whenNew(WeeklyCalendar.class).withNoArguments().thenReturn((WeeklyCalendar) expected);
         PowerMockito.doReturn(getResultMock).when(requestMock).get();
         PowerMockito.doReturn(responseMock).when(getResultMock).getResponse();
@@ -347,7 +362,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Given
         mockStatic(JerseyRequest.class);
-        when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(objRequestMock);
+        when(buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(objRequestMock);
         doReturn(delResultMock).when(objRequestMock).delete();
         SingleCalendarOperationsAdapter adapterSpy = spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
 
@@ -356,7 +371,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Than
         verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
+        buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
         assertSame(retrieved, delResultMock);
     }
 
@@ -366,7 +381,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Given
         mockStatic(JerseyRequest.class);
-        when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
+        when(buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(requestMock);
         PowerMockito.when(requestMock.put(calendarEntityMock)).thenReturn(getResultMock);
         SingleCalendarOperationsAdapter adapterSpy = spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
 
@@ -375,12 +390,100 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         // Than
         verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
+        buildRequest(eq(sessionStorageMock), eq(ReportJobCalendar.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
         assertSame(retrieved, getResultMock);
 
         MultivaluedMap<String, String> retrievedParams = (MultivaluedMap<String, String>) Whitebox.getInternalState(adapterSpy, "params");
         Mockito.verify(requestMock).addParams(retrievedParams);
         Mockito.verify(requestMock).put(calendarEntityMock);
+    }
+
+    @Test
+    public void asyncGet() throws Exception {
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(ReportJobCalendar.class),
+                        eq(new String[]{"/jobs", "/calendars", "testCalendarName"})))
+                .thenReturn(requestMock);
+
+        SingleCalendarOperationsAdapter adapterSpy = spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
+        PowerMockito.doReturn(getResultMock).when(requestMock).get();
+        PowerMockito.doReturn(operationResultMock).when(adapterSpy, "convertToLocalCalendarType", getResultMock);
+        PowerMockito.doReturn(new Object()).when(callbackMock).execute(operationResultMock);
+
+        // When
+        adapterSpy.asyncGet(callbackMock);
+
+        // Than
+        verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ReportJobCalendar.class),
+                eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
+
+        Mockito.verify(callbackMock).execute(operationResultMock);
+    }
+
+    @Test
+    public void asyncDelete() throws Exception {
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(Object.class),
+                        eq(new String[]{"/jobs", "/calendars", "testCalendarName"})))
+                .thenReturn(objRequestMock);
+
+        SingleCalendarOperationsAdapter adapterSpy = spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
+        PowerMockito.doReturn(delResultMock).when(objRequestMock).delete();
+        PowerMockito.doReturn(new Object()).when(resultObjectCallbackMock).execute(delResultMock);
+
+        // When
+        adapterSpy.asyncDelete(resultObjectCallbackMock);
+
+        // Than
+        verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(Object.class),
+                eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
+
+        Mockito.verify(resultObjectCallbackMock).execute(delResultMock);
+    }
+
+    @Test
+    public void asyncCreateNew() throws Exception {
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.whenNew(MultivaluedHashMap.class).withNoArguments().thenReturn(paramsSpy);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(ReportJobCalendar.class),
+                        eq(new String[]{"/jobs", "/calendars", "testCalendarName"})))
+                .thenReturn(requestMock);
+
+        SingleCalendarOperationsAdapter adapterSpy = PowerMockito.spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
+
+        PowerMockito.doReturn(getResultMock).when(requestMock).put(calendarEntityMock);
+        PowerMockito.doReturn(new Object()).when(callbackMock3).execute(getResultMock);
+        PowerMockito.doReturn(builderMock).when(requestMock).addParams(paramsSpy);
+        // When
+        adapterSpy.asyncCreateNew(calendarEntityMock, callbackMock3);
+
+        // Than
+        verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ReportJobCalendar.class),
+                eq(new String[]{"/jobs", "/calendars", "testCalendarName"}));
+
+        //Mockito.verify(callbackMock3).execute(getResultMock);
+        //Mockito.verify(requestMock).addParams(paramsSpy);
     }
 
     @AfterMethod

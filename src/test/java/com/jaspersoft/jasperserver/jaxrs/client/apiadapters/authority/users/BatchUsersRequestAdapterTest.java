@@ -8,6 +8,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -146,18 +147,15 @@ public class BatchUsersRequestAdapterTest extends PowerMockTestCase {
     @Test
     @SuppressWarnings("unchecked")
     public void asyncGet() throws Exception {
-        /*
+
         // Given
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UsersListWrapper.class),
-                eq(new String[]{"/organizations/MyCoolOrg/users"}),
-                any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UsersListWrapper.class), eq(new String[]{"/organizations/MyCoolOrg/users"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
 
-        BatchUsersRequestAdapter adapterSpy = spy(new BatchUsersRequestAdapter(sessionStorageMock, "MyCoolOrg"));
-        MultivaluedMap<String, String> params =
-                (MultivaluedMap<String, String>) Whitebox.getInternalState(adapterSpy, "params");
+        BatchUsersRequestAdapter adapterSpy = PowerMockito.spy(new BatchUsersRequestAdapter(sessionStorageMock, "MyCoolOrg"));
+        MultivaluedMap<String, String> params = (MultivaluedMap<String, String>) Whitebox.getInternalState(adapterSpy, "params");
 
-        PowerMockito.doReturn(operationResultMock).when(requestMock).delete();
+        PowerMockito.doReturn(operationResultMock).when(requestMock).get();
         PowerMockito.doReturn(requestBuilderMock).when(requestMock).addParams(params);
         PowerMockito.doReturn(resultMock).when(callbackMock).execute(operationResultMock);
 
@@ -165,15 +163,13 @@ public class BatchUsersRequestAdapterTest extends PowerMockTestCase {
         adapterSpy.asyncGet(callbackMock);
 
         // Than
-        verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UsersListWrapper.class),
-                eq(new String[]{"/organizations/MyCoolOrg/users"}), any(DefaultErrorHandler.class));
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UsersListWrapper.class), eq(new String[]{"/organizations/MyCoolOrg/users"}), any(DefaultErrorHandler.class));
 
-        verify(callbackMock, times(1)).execute(operationResultMock);
-        verify(requestMock, times(1)).addParams(params);
-        verify(requestMock, times(1)).delete();
-        verifyNoMoreInteractions(requestMock);
-        */
+        Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
+        Mockito.verify(requestMock, times(1)).addParams(params);
+        Mockito.verify(requestMock, times(1)).get();
+        Mockito.verifyNoMoreInteractions(requestMock);
     }
 
     @AfterMethod

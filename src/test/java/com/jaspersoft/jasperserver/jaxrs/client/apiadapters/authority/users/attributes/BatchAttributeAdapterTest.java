@@ -137,7 +137,7 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, operationResultMock);
     }
 
-    @Test
+    @Test(timeOut = 1000)
     @SuppressWarnings("unchecked")
     public void asyncGet() throws Exception {
 
@@ -244,7 +244,7 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
     }
 
 
-    @Test
+    @Test(timeOut = 1000)
     public void asyncDelete() throws Exception {
 
         // Given

@@ -3,6 +3,7 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.roles;
 import com.jaspersoft.jasperserver.dto.authority.RolesListWrapper;
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.any;
@@ -29,9 +31,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertSame;
@@ -137,32 +141,47 @@ public class BatchRolesRequestAdapterTest extends PowerMockTestCase {
         inOrder.verify(jerseyRequestMock, times(1)).get();
     }
 
-    @Test (timeOut = 2500)
+    @Test
     public void asyncGet() throws Exception {
 
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito
-                .when(buildRequest(
-                        eq(sessionStorageMock),
-                        eq(RolesListWrapper.class),
-                        eq(new String[]{"/organizations/9454/roles"}),
-                        any(DefaultErrorHandler.class)))
-                .thenReturn(jerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock), eq(RolesListWrapper.class),
+                eq(new String[]{"/roles"}), any(DefaultErrorHandler.class))).thenReturn(jerseyRequestMock);
 
-        PowerMockito.whenNew(MultivaluedHashMap.class).withNoArguments().thenReturn(mapMock);
-        PowerMockito.doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
-        PowerMockito.doReturn(expectedOpResultMock).when(callbackMock).execute(expectedOpResultMock);
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        BatchRolesRequestAdapter adapter = spy(new BatchRolesRequestAdapter(sessionStorageMock, null));
+
+        final Callback<OperationResult<RolesListWrapper>, Void> callback = spy(new Callback<OperationResult<RolesListWrapper>, Void>() {
+            public Void execute(OperationResult<RolesListWrapper> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
+        doReturn(null).when(callback).execute(expectedOpResultMock);
 
         // When
-        BatchRolesRequestAdapter adapter = new BatchRolesRequestAdapter(sessionStorageMock, "9454");
-        adapter.asyncGet(callbackMock);
+        RequestExecution retrieved = adapter.asyncGet(callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
 
         // Than
-        PowerMockito.verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(RolesListWrapper.class), eq(new String[]{"/organizations/9454/roles"}), any(DefaultErrorHandler.class));
-        Mockito.verify(jerseyRequestMock, times(1)).addParams(mapMock);
-        Mockito.verify(callbackMock, times(1)).execute(expectedOpResultMock);
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(expectedOpResultMock);
+        verify(jerseyRequestMock, times(1)).get();
+        verify(jerseyRequestMock, times(1)).addParams(any(MultivaluedHashMap.class));
     }
 
     @AfterMethod

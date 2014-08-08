@@ -21,24 +21,28 @@ import org.testng.annotations.Test;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.support.membermodification.MemberMatcher.field;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
  * Unit tests for {@link ExportRequestAdapter}
  */
-@PrepareForTest({ExportRequestAdapter.class, JerseyRequest.class})
+@PrepareForTest({JerseyRequest.class})
 public class ExportRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
@@ -73,7 +77,7 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
     private String[] fakeArrayPath = new String[]{"/export", taskId, "/state"};
 
     @BeforeMethod
-    public void after() {
+    public void before() {
         initMocks(this);
         adapterSpy = Mockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
     }
@@ -315,9 +319,55 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         Mockito.verify(requestInputStreamMock, times(1)).setAccept("application/zip");
     }
 
-    @Test(testName = "asyncState")
-    public void should_invoce_method_logic_asynchronously() throws Exception {
+    @Test
+    /**
+     * for {@link ExportRequestAdapter#asyncState(Callback)}
+     */
+    public void should_invoke_method_logic_asynchronously() throws Exception {
 
+        // Given
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(
+                buildRequest(
+                        eq(sessionStorageMock),
+                        eq(StateDto.class),
+                        eq(new String[]{"/export", taskId, "/state"})))
+                .thenReturn(requestStateDtoMock);
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        ExportRequestAdapter taskAdapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        final Callback<OperationResult<StateDto>, Void> callback = spy(new Callback<OperationResult<StateDto>, Void>() {
+            public Void execute(OperationResult<StateDto> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).get();
+        PowerMockito.doReturn(null).when(callback).execute(operationResultStateDtoMock);
+
+        // When
+        RequestExecution retrieved = taskAdapterSpy.asyncState(callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        Assert.assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultStateDtoMock);
+        verify(requestStateDtoMock, times(1)).get();
+        //verify(requestStateDtoMock, times(1)).addParams(any(MultivaluedHashMap.class));
+
+        /*
         // Given
         ExportRequestAdapter taskAdapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
         Object objectMock = PowerMockito.mock(Object.class);
@@ -347,11 +397,93 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
 
         Mockito.verify(requestStateDtoMock, times(1)).get();
         Mockito.verify(operationResultObjectCallback, times(1)).execute(operationResultStateDtoMock);
+        */
     }
 
+    @Test
+    public void should_invoke_method_logic_asynchronously_with_() throws Exception {
+
+        /* Given */
+        mockStatic(JerseyRequest.class);
+        PowerMockito.doReturn(requestStateDtoMock).when(JerseyRequest.class, "buildRequest",
+                eq(sessionStorageMock),
+                eq(StateDto.class),
+                eq(new String[]{"/export", "task77", "/state"}));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        ExportRequestAdapter requestAdapterSpy = new ExportRequestAdapter(sessionStorageMock, "task77");
+        Callback<OperationResult<StateDto>, Void> callbackSpy = PowerMockito.spy(new Callback<OperationResult<StateDto>, Void>() {
+            @Override
+            public Void execute(OperationResult<StateDto> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(operationResultStateDtoMock).when(requestStateDtoMock).get();
+        PowerMockito.doReturn(null).when(callbackSpy).execute(operationResultStateDtoMock);
+
+        /* When */
+        RequestExecution retrieved = requestAdapterSpy.asyncState(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+        /* Than */
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+
+        Mockito.verify(callbackSpy, times(1)).execute(operationResultStateDtoMock);
+        Mockito.verify(requestStateDtoMock, times(1)).get();
+    }
+
+//    @Test
+//    public void test() throws Exception {
+//
+//        /* Given */
+//        mockStatic(JerseyRequest.class);
+//        PowerMockito.doReturn(requestMock).when(JerseyRequest.class, "buildRequest", storageMock, StateDto.class, new String[]{"/export", "task77", "/state"});
+//
+//        final AtomicInteger newThreadId = new AtomicInteger();
+//        Callback<OperationResult<StateDto>, Void> callbackSpy = spy(new Callback<OperationResult<StateDto>, Void>() {
+//            @Override
+//            public Void execute(OperationResult<StateDto> data) {
+//                newThreadId.set((int) Thread.currentThread().getId());
+//                synchronized (this) {
+//                    this.notify();
+//                }
+//                return null;
+//            }
+//        });
+//
+//        /* When */
+//        ExportRequestAdapter adapter = new ExportRequestAdapter(storageMock, "task77");
+//        RequestExecution result = adapter.asyncState(null);
+//
+//        synchronized (callbackSpy) {
+//            callbackSpy.wait(5000);
+//        }
+//
+//        /* Than */
+//        verifyStatic(times(1));
+//        buildRequest(storageMock, StateDto.class, new String[]{"/export", "task77", "/state"});
+//        assertSame(result, null);
+//    }
 
     @AfterMethod
-    public void before() {
-        reset(sessionStorageMock, requestStateDtoMock, operationResultStateDtoMock, stateMock);
+    public void after() {
+        reset(stateMock, sessionStorageMock, requestStateDtoMock, requestInputStreamMock,
+                operationResultStateDtoMock, operationResultInputStreamMock, callback, streamRequestBuilderMock,
+                operationResultObjectCallback);
     }
 }
+
+
+

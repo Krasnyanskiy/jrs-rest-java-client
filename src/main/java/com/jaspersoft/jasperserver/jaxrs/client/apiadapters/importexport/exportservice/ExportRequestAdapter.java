@@ -32,14 +32,10 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.importexport.StateDto;
 
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 
 public class ExportRequestAdapter extends AbstractAdapter {
-
-    private ExecutorService service = Executors.newFixedThreadPool(4);
 
     private static final String STATE_URI = "/state";
     private final String taskId;
@@ -54,7 +50,7 @@ public class ExportRequestAdapter extends AbstractAdapter {
     }
 
     public <R> RequestExecution asyncState(final Callback<OperationResult<StateDto>, R> callback) {
-        final JerseyRequest<StateDto> request = buildRequest(sessionStorage, StateDto.class, new String[]{"/export", taskId, STATE_URI});
+        final JerseyRequest<StateDto> request = JerseyRequest.buildRequest(sessionStorage, StateDto.class, new String[]{"/export", taskId, STATE_URI});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {

@@ -2,13 +2,16 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users;
 
 import com.jaspersoft.jasperserver.dto.authority.ClientUser;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.attributes.BatchAttributeAdapter;
+import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.attributes.BatchAttributeInterfaceAdapter;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.attributes.SingleAttributeAdapter;
+import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.attributes.SingleAttributeInterfaceAdapter;
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -18,19 +21,33 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyNew;
+import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
  * Unit tests for {@link SingleUserRequestAdapter}
  */
-@PrepareForTest({SingleUserRequestAdapter.class, SingleAttributeAdapter.class, JerseyRequest.class, StringBuilder.class})
+@PrepareForTest({SingleUserRequestAdapter.class, SingleAttributeAdapter.class,
+        JerseyRequest.class, StringBuilder.class})
 public class SingleUserRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
@@ -47,6 +64,9 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
     private OperationResult<ClientUser> operationResultMock;
+
+    @Mock
+    private ClientUser userMock;
 
     @BeforeMethod
     public void before() {
@@ -85,8 +105,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void should_invoke_constructor_with_proper_two_params() {
 
         // When
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg");
-
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg");
         final StringBuilder retrieved = (StringBuilder) Whitebox.getInternalState(adapter, "uri");
         final String expected = "/organizations/MyCoolOrg/users/";
 
@@ -99,8 +118,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void should_invoke_non_deprecated_constructor_with_null_organizationId() {
 
         // When
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, null);
-
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, null);
         final StringBuilder retrieved = (StringBuilder) Whitebox.getInternalState(adapter, "uri");
         final String expected = "/users/";
 
@@ -113,7 +131,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void test1() {
 
         // When
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
         final StringBuilder retrieved = (StringBuilder) Whitebox.getInternalState(adapter, "uri");
         final String expected = "/organizations/MyCoolOrg/users/Simon";
 
@@ -126,7 +144,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void test2() {
 
         // When
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", null, sessionStorageMock);
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", null, sessionStorageMock);
         final StringBuilder retrieved = (StringBuilder) Whitebox.getInternalState(adapter, "uri");
         final String expected = "/users/Simon";
 
@@ -139,7 +157,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void test3() {
 
         // When
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(null, null, sessionStorageMock);
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(null, null, sessionStorageMock);
 
         // Than
         // throw exception
@@ -149,16 +167,16 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void attribute() throws Exception {
 
         // Given
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
-        PowerMockito.whenNew(SingleAttributeAdapter.class)
+        final SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
+        whenNew(SingleAttributeAdapter.class)
                 .withArguments(eq(sessionStorageMock), any(StringBuilder.class))
                 .thenReturn(expectedSingleAttributeAdapterMock);
 
         // When
-        SingleAttributeAdapter retrieved = adapter.attribute();
+        final SingleAttributeAdapter retrieved = adapter.attribute();
 
         // Than
-        PowerMockito.verifyNew(SingleAttributeAdapter.class)
+        verifyNew(SingleAttributeAdapter.class)
                 .withArguments(eq(sessionStorageMock), any(StringBuilder.class));
         assertSame(retrieved, expectedSingleAttributeAdapterMock);
     }
@@ -168,7 +186,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
 
         // Given
         SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
-        PowerMockito.whenNew(BatchAttributeAdapter.class)
+        whenNew(BatchAttributeAdapter.class)
                 .withArguments(eq(sessionStorageMock), any(StringBuilder.class))
                 .thenReturn(expectedBatchAttributeAdapterMock);
 
@@ -176,7 +194,7 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
         BatchAttributeAdapter retrieved = adapter.multipleAttributes();
 
         // Than
-        PowerMockito.verifyNew(BatchAttributeAdapter.class)
+        verifyNew(BatchAttributeAdapter.class)
                 .withArguments(eq(sessionStorageMock), any(StringBuilder.class));
         assertSame(retrieved, expectedBatchAttributeAdapterMock);
     }
@@ -185,21 +203,19 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void should_return_proper_SingleAttributeInterfaceAdapter_object() throws Exception {
 
         // Given
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
-        SingleUserRequestAdapter.SingleAttributeInterfaceAdapter expected =
-                PowerMockito.mock(SingleUserRequestAdapter.SingleAttributeInterfaceAdapter.class);
+        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg", "Simon");
+        SingleAttributeInterfaceAdapter expected = mock(SingleAttributeInterfaceAdapter.class);
 
-        PowerMockito.whenNew(SingleUserRequestAdapter.SingleAttributeInterfaceAdapter.class)
-                .withArguments("State")
+        whenNew(SingleAttributeInterfaceAdapter.class)
+                .withArguments(sessionStorageMock, "/organizations/MyCoolOrg/users/Simon", "State")
                 .thenReturn(expected);
 
         // When
-        SingleUserRequestAdapter.SingleAttributeInterfaceAdapter retrieved = adapter.attribute("State");
+        SingleAttributeInterfaceAdapter retrieved = adapter.attribute("State");
 
         // Than
-        PowerMockito.verifyNew(SingleUserRequestAdapter.SingleAttributeInterfaceAdapter.class)
-                .withArguments(eq("State"));
-        Assert.assertSame(retrieved, expected);
+        verifyNew(SingleAttributeInterfaceAdapter.class).withArguments(eq(sessionStorageMock), eq("/organizations/MyCoolOrg/users/Simon"), eq("State"));
+        assertSame(retrieved, expected);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -219,19 +235,15 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
     public void should_return_proper_adapter_class() throws Exception {
 
         // Given
-        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock);
-
-        SingleUserRequestAdapter.BatchAttributeInterfaceAdapter expected =
-                PowerMockito.mock(SingleUserRequestAdapter.BatchAttributeInterfaceAdapter.class);
-        PowerMockito.whenNew(SingleUserRequestAdapter.BatchAttributeInterfaceAdapter.class)
-                .withNoArguments()
-                .thenReturn(expected);
+        SingleUserRequestAdapter adapter = new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg", "Simon");
+        BatchAttributeInterfaceAdapter expected = mock(BatchAttributeInterfaceAdapter.class);
+        whenNew(BatchAttributeInterfaceAdapter.class).withArguments(sessionStorageMock, "/organizations/MyCoolOrg/users/Simon").thenReturn(expected);
 
         // When
-        SingleUserRequestAdapter.BatchAttributeInterfaceAdapter retrieved = adapter.attributes();
+        BatchAttributeInterfaceAdapter retrieved = adapter.attributes();
 
         // Than
-        PowerMockito.verifyNew(SingleUserRequestAdapter.BatchAttributeInterfaceAdapter.class).withNoArguments();
+        verifyNew(BatchAttributeInterfaceAdapter.class).withArguments(eq(sessionStorageMock), eq("/organizations/MyCoolOrg/users/Simon"));
         assertSame(expected, retrieved);
     }
 
@@ -241,16 +253,16 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
         // Given
         SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter("Simon", "MyCoolOrg",
                 sessionStorageMock));
-        PowerMockito.doReturn(userJerseyRequestMock).when(adapterSpy, "buildRequest");
-        PowerMockito.doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        doReturn(userJerseyRequestMock).when(adapterSpy, "buildRequest");
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
 
         // When
         OperationResult<ClientUser> retrieved = adapterSpy.get();
 
         // Than
-        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest");
-        Mockito.verify(userJerseyRequestMock, times(1)).get();
-        Assert.assertSame(retrieved, operationResultMock);
+        verifyPrivate(adapterSpy, times(1)).invoke("buildRequest");
+        verify(userJerseyRequestMock, times(1)).get();
+        assertSame(retrieved, operationResultMock);
     }
 
     @Test
@@ -259,18 +271,18 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
         // Given
         final String userId = "Simon";
 
-        PowerMockito.mockStatic(JerseyRequest.class);
+        mockStatic(JerseyRequest.class);
         SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter("Simon", "MyCoolOrg", sessionStorageMock));
 
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
-        PowerMockito.doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        when(buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
 
         // When
         OperationResult<ClientUser> retrieved = adapterSpy.get(userId);
 
         // Than
         verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class));
+        buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class));
     }
 
     @Test
@@ -279,23 +291,352 @@ public class SingleUserRequestAdapterTest extends PowerMockTestCase {
         // Given
         final String userId = "Simon";
 
-        PowerMockito.mockStatic(JerseyRequest.class);
+        mockStatic(JerseyRequest.class);
         SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg"));
 
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
-        PowerMockito.doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        when(buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
 
         // When
         OperationResult<ClientUser> retrieved = adapterSpy.get(userId);
 
         // Than
         verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class));
+        buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/" + userId}), any(DefaultErrorHandler.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void asyncGet() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, null, "Simon"));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "buildRequest");
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        adapterSpy.asyncGet(callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).get();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void should_run_method_get_asynchronously() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(/*sessionStorageMock, null, "Simon"*/ "Simon", null, sessionStorageMock));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "request");
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncGet(callback, "Simon");
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        StringBuilder uri = (StringBuilder) Whitebox.getInternalState(adapterSpy, "uri");
+
+        // Than
+        assertNotNull(retrieved);
+        assertEquals(uri.toString(), "/users/Simon");
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).get();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void should_run_method_asynchronously_when_use_deprecated_constructor() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, null));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "request");
+        doReturn(operationResultMock).when(userJerseyRequestMock).get();
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncGet(callback, "Simon");
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        StringBuilder uri = (StringBuilder) Whitebox.getInternalState(adapterSpy, "uri");
+
+        // Than
+        assertNotNull(retrieved);
+        assertEquals(uri.toString(), "/users/Simon");
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).get();
+    }
+
+    @Test
+    public void asyncCreateOrUpdate_deprecated() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, null, "Simon"));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "buildRequest");
+        doReturn(operationResultMock).when(userJerseyRequestMock).put(userMock);
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(userMock, callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).put(userMock);
+    }
+
+    @Test
+    public void asyncCreateOrUpdate() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, null));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "request");
+        doReturn(operationResultMock).when(userJerseyRequestMock).put(userMock);
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(userMock, callback, "Simon");
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        StringBuilder uri = (StringBuilder) Whitebox.getInternalState(adapterSpy, "uri");
+
+        // Than
+        assertNotNull(retrieved);
+        assertEquals(uri.toString(), "/users/Simon");
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).put(userMock);
+    }
+
+    @Test
+    public void test10() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        final SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg", "Simon"));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "buildRequest");
+        doReturn(operationResultMock).when(userJerseyRequestMock).delete();
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).delete();
+    }
+
+    @Test
+    public void test11() throws Exception {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        final SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg"));
+
+        final Callback<OperationResult<ClientUser>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientUser>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientUser> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        doReturn(userJerseyRequestMock).when(adapterSpy, "request");
+        doReturn(operationResultMock).when(userJerseyRequestMock).delete();
+        doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback, "Simon");
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        StringBuilder uri = (StringBuilder) Whitebox.getInternalState(adapterSpy, "uri");
+
+        // Than
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        assertEquals(uri.toString(), "/organizations/MyCoolOrg/users/Simon");
+        verify(callback, times(1)).execute(operationResultMock);
+        verify(userJerseyRequestMock, times(1)).delete();
+    }
+
+    /**
+     * Test for {@link SingleUserRequestAdapter#delete()} and for {@link SingleUserRequestAdapter#buildRequest}
+     */
+    @Test
+    public void test12() {
+
+        // Given
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/Simon"}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
+        doReturn(operationResultMock).when(userJerseyRequestMock).delete();
+
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg", "Simon"));
+
+        // When
+        OperationResult retrieved = adapterSpy.delete();
+
+        // Than
+        verifyStatic(times(1));
+        buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/Simon"}), any(DefaultErrorHandler.class));
+        verify(userJerseyRequestMock, times(1)).delete();
+    }
+
+    /**
+     * Test for {@link SingleUserRequestAdapter#createOrUpdate(ClientUser)} ()} and for {@link SingleUserRequestAdapter#buildRequest}
+     */
+    @Test
+    public void test14() {
+        // Given
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/Simon"}), any(DefaultErrorHandler.class))).thenReturn(userJerseyRequestMock);
+        doReturn(operationResultMock).when(userJerseyRequestMock).put(userMock);
+
+        SingleUserRequestAdapter adapterSpy = PowerMockito.spy(new SingleUserRequestAdapter(sessionStorageMock, "MyCoolOrg", "Simon"));
+
+        // When
+        OperationResult retrieved = adapterSpy.createOrUpdate(userMock);
+
+        // Than
+        verifyStatic(times(1));
+        buildRequest(eq(sessionStorageMock), eq(ClientUser.class), eq(new String[]{"/organizations/MyCoolOrg/users/Simon"}), any(DefaultErrorHandler.class));
+        verify(userJerseyRequestMock, times(1)).put(userMock);
+    }
+
+    @Test
+    public void test15() {
+        // ...
     }
 
     @AfterMethod
     public void after() {
         reset(sessionStorageMock, expectedSingleAttributeAdapterMock, expectedBatchAttributeAdapterMock,
-                userJerseyRequestMock, operationResultMock);
+                userJerseyRequestMock, operationResultMock, userMock);
     }
 }

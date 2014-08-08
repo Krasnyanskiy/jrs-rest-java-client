@@ -7,7 +7,6 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.ThreadPoolUtil;
-import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 
 public class SingleAttributeAdapter extends AbstractAdapter {
@@ -30,8 +29,7 @@ public class SingleAttributeAdapter extends AbstractAdapter {
         return request().get();
     }
 
-    public <R> RequestExecution asyncGet(final Callback<OperationResult<ClientUserAttribute>, R> callback,
-                                         final String attributeName) {
+    public <R> RequestExecution asyncGet(final Callback<OperationResult<ClientUserAttribute>, R> callback, final String attributeName) {
         this.attributeName = attributeName;
         final JerseyRequest<ClientUserAttribute> request = request();
         RequestExecution task = new RequestExecution(new Runnable() {
@@ -83,6 +81,7 @@ public class SingleAttributeAdapter extends AbstractAdapter {
     }
 
     private JerseyRequest<ClientUserAttribute> request() {
-        return JerseyRequest.buildRequest(sessionStorage, ClientUserAttribute.class, new String[]{uri.toString(), "/attributes", attributeName}, new DefaultErrorHandler());
+        throw new RuntimeException("Oops!");
+        //return JerseyRequest.buildRequest(sessionStorage, ClientUserAttribute.class, new String[]{uri.toString(), "/attributes", attributeName}, new DefaultErrorHandler());
     }
 }
