@@ -70,9 +70,11 @@ public class SingleOrganizationAdapter extends AbstractAdapter {
     }
 
     private String prepareJsonForUpdate(ClientTenant clientTenant){
+
         ObjectMapper mapper = new ObjectMapper();
         SerializationConfig serializationConfig = mapper.getSerializationConfig();
         serializationConfig = serializationConfig.withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+
         AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
         mapper.setSerializationConfig(serializationConfig);
         mapper.setAnnotationIntrospector(introspector);

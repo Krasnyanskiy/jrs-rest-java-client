@@ -58,14 +58,12 @@ public class BatchOrganizationsAdapter extends AbstractAdapter {
     public <R> RequestExecution asyncGet(final Callback<OperationResult<OrganizationsListWrapper>, R> callback) {
         final JerseyRequest<OrganizationsListWrapper> request = buildRequest(OrganizationsListWrapper.class);
         request.addParams(params);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -79,14 +77,12 @@ public class BatchOrganizationsAdapter extends AbstractAdapter {
     public <R> RequestExecution asyncCreate(final ClientTenant clientTenant, final Callback<OperationResult<ClientTenant>, R> callback){
         final JerseyRequest<ClientTenant> request = buildRequest(ClientTenant.class);
         request.addParams(params);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(clientTenant));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }

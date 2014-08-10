@@ -1,6 +1,7 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.attributes;
 
 import com.jaspersoft.jasperserver.dto.authority.ClientUserAttribute;
+import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.AbstractAdapter;
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
@@ -13,14 +14,13 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationRe
  * @author Alexander Krasnyanskiy
  */
 @Deprecated
-public class SingleAttributeInterfaceAdapter {
+public class SingleAttributeInterfaceAdapter extends AbstractAdapter{
 
-    private final SessionStorage sessionStorage;
     private final String uri;
     private final String attributeName;
 
     public SingleAttributeInterfaceAdapter(SessionStorage sessionStorage, String uri, String attributeName) {
-        this.sessionStorage = sessionStorage;
+        super(sessionStorage);
         this.uri = uri;
         this.attributeName = attributeName;
     }

@@ -2,21 +2,29 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.permissions;
 
 import com.jaspersoft.jasperserver.dto.permissions.RepositoryPermission;
 import com.jaspersoft.jasperserver.dto.permissions.RepositoryPermissionListWrapper;
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.MimeType;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RestClientConfiguration;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -25,10 +33,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.support.membermodification.MemberMatcher.field;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
 /**
@@ -111,7 +122,7 @@ public class PermissionsServiceTest extends PowerMockTestCase {
         verify(requestMock, times(1)).post(permissionMock);
     }
 
-    @Test (testName = "createNew_with_list_of_wrapped_RepositoryPermission")
+    @Test(testName = "createNew_with_list_of_wrapped_RepositoryPermission")
     public void should_persist_list_of_permissions() {
 
         // Given
@@ -131,6 +142,91 @@ public class PermissionsServiceTest extends PowerMockTestCase {
         verify(requestMock, times(1)).setContentType("application/collection+JSON");
         verify(requestMock, times(1)).post(wrapperMock);
         assertSame(retrieved, resultMock);
+    }
+
+    @Test
+    public void should_create_new_permission_in_separate_thread() throws InterruptedException {
+
+        /* Given */
+        RepositoryPermission permissionMock = mock(RepositoryPermission.class);
+        mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/permissions"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).post(permissionMock);
+        PermissionsService serviceSpy = spy(new PermissionsService(sessionStorageMock));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult, Void> callback = spy(new Callback<OperationResult, Void>() {
+            @Override
+            public Void execute(OperationResult data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(resultMock);
+
+        /* When */
+        RequestExecution retrieved = serviceSpy.asyncCreateNew(permissionMock, callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        verify(requestMock, times(1)).post(permissionMock);
+        verify(callback).execute(resultMock);
+        assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
+    @Test
+    public void should_create_new_list_of_permission_in_separate_thread() throws InterruptedException {
+
+        /* Given */
+        RepositoryPermissionListWrapper permissionListWrapperMock = mock(RepositoryPermissionListWrapper.class);
+        mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/permissions"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).post(permissionListWrapperMock);
+        PowerMockito.doReturn(configurationMock).when(sessionStorageMock).getConfiguration();
+        PermissionsService serviceSpy = spy(new PermissionsService(sessionStorageMock));
+
+        InOrder inOrder = Mockito.inOrder(requestMock);
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult, Void> callback = spy(new Callback<OperationResult, Void>() {
+            @Override
+            public Void execute(OperationResult data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(resultMock);
+
+        /* When */
+        RequestExecution retrieved = serviceSpy.asyncCreateNew(permissionListWrapperMock, callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        inOrder.verify(requestMock, times(1)).setContentType("application/collection+XML");
+        inOrder.verify(requestMock, times(1)).post(permissionListWrapperMock);
+
+        verify(callback).execute(resultMock);
+        assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
     }
 
     @AfterMethod

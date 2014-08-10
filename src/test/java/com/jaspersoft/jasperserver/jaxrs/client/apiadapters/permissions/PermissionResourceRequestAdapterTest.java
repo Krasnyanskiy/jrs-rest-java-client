@@ -1,22 +1,28 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.permissions;
 
 import com.jaspersoft.jasperserver.dto.permissions.RepositoryPermissionListWrapper;
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.MimeType;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RestClientConfiguration;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -168,7 +174,7 @@ public class PermissionResourceRequestAdapterTest extends PowerMockTestCase {
         verify(requestMock, times(1)).addParams(paramsField);
         verify(requestMock, never()).delete();
         verifyNoMoreInteractions(requestMock); // IMPORTANT: must be only two corresponding invocations and
-                                               // no more on this Request object.
+        // no more on this Request object.
         assertSame(retrieved, expectedResultMock);
     }
 
@@ -192,6 +198,85 @@ public class PermissionResourceRequestAdapterTest extends PowerMockTestCase {
         // Verify that instance print is called only once
         verify(requestMock, times(1)).delete();
         assertSame(retrieved, expectedResultMock);
+    }
+
+
+    @Test
+    public void should_retrieve_resource_asynchronously() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(RepositoryPermissionListWrapper.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(expectedResultMock).when(requestMock).get();
+        PermissionResourceRequestAdapter adapterSpy = PowerMockito.spy(new PermissionResourceRequestAdapter(sessionStorageMock, fakeUri));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<RepositoryPermissionListWrapper>, Void> callback = PowerMockito.spy(new Callback<OperationResult<RepositoryPermissionListWrapper>, Void>() {
+            @Override
+            public Void execute(OperationResult<RepositoryPermissionListWrapper> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(expectedResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncGet(callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Mockito.verify(requestMock).get();
+        Mockito.verify(callback).execute(expectedResultMock);
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
+    @Test
+    public void should_delete_resource_asynchronously() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(RepositoryPermissionListWrapper.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(expectedResultMock).when(requestMock).delete();
+        PermissionResourceRequestAdapter adapterSpy = PowerMockito.spy(new PermissionResourceRequestAdapter(sessionStorageMock, fakeUri));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<RepositoryPermissionListWrapper>, Void> callback = PowerMockito.spy(new Callback<OperationResult<RepositoryPermissionListWrapper>, Void>() {
+            @Override
+            public Void execute(OperationResult<RepositoryPermissionListWrapper> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(expectedResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Mockito.verify(requestMock).delete();
+        Mockito.verify(callback).execute(expectedResultMock);
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
     }
 
     @AfterMethod

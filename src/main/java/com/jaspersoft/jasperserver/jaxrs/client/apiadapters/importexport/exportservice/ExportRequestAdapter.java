@@ -50,7 +50,7 @@ public class ExportRequestAdapter extends AbstractAdapter {
     }
 
     public <R> RequestExecution asyncState(final Callback<OperationResult<StateDto>, R> callback) {
-        final JerseyRequest<StateDto> request = JerseyRequest.buildRequest(sessionStorage, StateDto.class, new String[]{"/export", taskId, STATE_URI});
+        final JerseyRequest<StateDto> request = buildRequest(sessionStorage, StateDto.class, new String[]{"/export", taskId, STATE_URI});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
@@ -97,9 +97,7 @@ public class ExportRequestAdapter extends AbstractAdapter {
                     }
                     try {
                         Thread.sleep(500);
-                    } catch (InterruptedException ignored) {
-                        // NOP
-                    }
+                    } catch (InterruptedException ignored) {/* NOP */}
                 }
                 callback.execute(request.get());
             }

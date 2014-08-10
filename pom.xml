@@ -126,6 +126,22 @@
 
                         </exclude>
                     </excludes>
+                    <!--<rules>-->
+                        <!--<rule>-->
+                            <!--<element>class</element>-->
+                            <!--<excludes>-->
+                                <!--<exclude>*Test</exclude>-->
+                            <!--</excludes>-->
+                            <!--<limits>-->
+                                <!--<limit>-->
+                                    <!--<counter>line</counter>-->
+                                    <!--<value>coveredratio</value>-->
+                                    <!--&lt;!&ndash; min 20% for class &ndash;&gt;-->
+                                    <!--<minimum>0.20</minimum>-->
+                                <!--</limit>-->
+                            <!--</limits>-->
+                        <!--</rule>-->
+                    <!--</rules>-->
                 </configuration>
             </plugin>
 

@@ -7,6 +7,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.ThreadPoolUtil;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 
 public class SingleAttributeAdapter extends AbstractAdapter {
@@ -81,7 +82,6 @@ public class SingleAttributeAdapter extends AbstractAdapter {
     }
 
     private JerseyRequest<ClientUserAttribute> request() {
-        throw new RuntimeException("Oops!");
-        //return JerseyRequest.buildRequest(sessionStorage, ClientUserAttribute.class, new String[]{uri.toString(), "/attributes", attributeName}, new DefaultErrorHandler());
+        return JerseyRequest.buildRequest(sessionStorage, ClientUserAttribute.class, new String[]{uri.toString(), "/attributes", attributeName}, new DefaultErrorHandler());
     }
 }

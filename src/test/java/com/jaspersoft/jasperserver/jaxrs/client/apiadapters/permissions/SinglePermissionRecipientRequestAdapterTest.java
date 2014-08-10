@@ -1,16 +1,22 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.permissions;
 
 import com.jaspersoft.jasperserver.dto.permissions.RepositoryPermission;
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
@@ -39,7 +45,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
     private JerseyRequest<RepositoryPermission> requestMock;
 
     @Mock
-    private OperationResult<RepositoryPermission> operationResultMock;
+    private OperationResult<RepositoryPermission> resultMock;
 
     @Mock
     private RepositoryPermission permissionMock;
@@ -56,7 +62,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         // Given
         SinglePermissionRecipientRequestAdapter adapterSpy = spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
         doReturn(requestMock).when(adapterSpy, "getBuilder", RepositoryPermission.class);
-        doReturn(operationResultMock).when(requestMock).get();
+        doReturn(resultMock).when(requestMock).get();
 
         // When
         OperationResult<RepositoryPermission> retrieved = adapterSpy.get();
@@ -73,7 +79,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         // Given
         SinglePermissionRecipientRequestAdapter adapterSpy = spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
         doReturn(requestMock).when(adapterSpy, "getBuilder", RepositoryPermission.class);
-        doReturn(operationResultMock).when(requestMock).put(permissionMock);
+        doReturn(resultMock).when(requestMock).put(permissionMock);
 
         // When
         OperationResult<RepositoryPermission> retrieved = adapterSpy.createOrUpdate(permissionMock);
@@ -82,7 +88,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         verifyPrivate(adapterSpy, times(1)).invoke("getBuilder", eq(RepositoryPermission.class));
         verify(requestMock, times(1)).put(permissionMock);
         assertNotNull(retrieved);
-        assertSame(retrieved, operationResultMock);
+        assertSame(retrieved, resultMock);
     }
 
     @Test(testName = "delete")
@@ -110,7 +116,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         // Given
         mockStatic(JerseyRequest.class);
         when(JerseyRequest.buildRequest(eq(storageMock), eq(RepositoryPermission.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
-        when(requestMock.get()).thenReturn(operationResultMock);
+        when(requestMock.get()).thenReturn(resultMock);
         SinglePermissionRecipientRequestAdapter spy = spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
 
         // When
@@ -126,7 +132,7 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         // Verify that addMatrixParam print is called with the specified parameters.
         verify(requestMock).addMatrixParam(eq("recipient"), eq("recipient"));
 
-        assertSame(retrieved, operationResultMock);
+        assertSame(retrieved, resultMock);
     }
 
     @Test(testName = "get", expectedExceptions = NullPointerException.class)
@@ -142,8 +148,87 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         // Than expect NPE
     }
 
+    @Test
+    public void should_retrieve_permission_asynchronously() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(storageMock), eq(RepositoryPermission.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).get();
+        SinglePermissionRecipientRequestAdapter adapterSpy = PowerMockito.spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<RepositoryPermission>, Void> callback = PowerMockito.spy(new Callback<OperationResult<RepositoryPermission>, Void>() {
+            @Override
+            public Void execute(OperationResult<RepositoryPermission> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(resultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncGet(callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Mockito.verify(requestMock).get();
+        Mockito.verify(callback).execute(resultMock);
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
+    @Test
+    public void should_delete_permission_asynchronously() throws InterruptedException {
+
+        /* Given */
+        JerseyRequest<Object> requestMock = (JerseyRequest<Object>) PowerMockito.mock(JerseyRequest.class);
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(storageMock), eq(Object.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).delete();
+        SinglePermissionRecipientRequestAdapter adapterSpy = PowerMockito.spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult, Void> callback = PowerMockito.spy(new Callback<OperationResult, Void>() {
+            @Override
+            public Void execute(OperationResult data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(resultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Mockito.verify(requestMock).delete();
+        Mockito.verify(callback).execute(resultMock);
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
     @AfterMethod
     public void before() {
-        reset(requestMock, operationResultMock, storageMock, permissionMock);
+        reset(requestMock, resultMock, storageMock, permissionMock);
     }
 }
