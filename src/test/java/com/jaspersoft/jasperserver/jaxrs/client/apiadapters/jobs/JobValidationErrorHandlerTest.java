@@ -55,7 +55,7 @@ public class JobValidationErrorHandlerTest extends PowerMockTestCase {
 
         /* Given */
         final ValidationErrorsListWrapper expected = null;
-        final int wantedNumberOfInvocations = 2; // invoke getHeaderString method in child and parent class
+        final int wantedNumberOfInvocations = 2; // invoke getHeaderString length in child and parent class
         Mockito.when(responseMock.getHeaderString("Content-Type")).thenReturn("application/xml");
         Mockito.when(responseMock.readEntity(ValidationErrorsListWrapper.class)).thenReturn(expected);
 

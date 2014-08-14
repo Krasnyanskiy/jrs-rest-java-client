@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting.reportparameters;
 
 import com.jaspersoft.jasperserver.dto.reports.ReportParameter;
@@ -30,27 +29,22 @@ import java.util.List;
 
 public class ReportParametersUtils {
 
-    public static ReportParameters toReportParameters(MultivaluedMap<String, String> params){
-
+    public static ReportParameters toReportParameters(MultivaluedMap<String, String> params) {
         List<ReportParameter> parameters = new ArrayList<ReportParameter>();
-
-        for (MultivaluedMap.Entry<String, List<String>> entry : params.entrySet()){
+        for (MultivaluedMap.Entry<String, List<String>> entry : params.entrySet()) {
             ReportParameter parameter = new ReportParameter();
             parameter.setName(entry.getKey());
             parameter.setValues(entry.getValue());
             parameters.add(parameter);
         }
-
         return new ReportParameters(parameters);
     }
 
-    public static String toPathSegment(List<String> inputControlsIds){
+    public static String toPathSegment(List<String> inputControlsIds) {
         StringBuilder request = new StringBuilder();
-        for (String id : inputControlsIds)
-            request.append(id)
-                    .append(";");
-
+        for (String id : inputControlsIds) {
+            request.append(id).append(";");
+        }
         return request.toString();
     }
-
 }

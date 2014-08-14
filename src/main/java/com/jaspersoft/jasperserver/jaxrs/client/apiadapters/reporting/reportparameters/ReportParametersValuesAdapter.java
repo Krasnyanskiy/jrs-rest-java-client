@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting.reportparameters;
 
 import com.jaspersoft.jasperserver.dto.reports.ReportParameters;
@@ -44,8 +43,7 @@ public class ReportParametersValuesAdapter extends AbstractAdapter {
         this.reportUnitUri = reportUnitUri;
     }
 
-    public ReportParametersValuesAdapter(SessionStorage sessionStorage, String reportUnitUri, String idsPathSegment,
-                                         MultivaluedMap<String, String> params) {
+    public ReportParametersValuesAdapter(SessionStorage sessionStorage, String reportUnitUri, String idsPathSegment, MultivaluedMap<String, String> params) {
         this(sessionStorage, reportUnitUri);
         this.idsPathSegment = idsPathSegment;
         this.params = params;
@@ -59,30 +57,24 @@ public class ReportParametersValuesAdapter extends AbstractAdapter {
     public <R> RequestExecution asyncGet(final Callback<OperationResult<InputControlStateListWrapper>, R> callback) {
         final JerseyRequest<InputControlStateListWrapper> request = prepareRequest();
         final ReportParameters reportParameters = ReportParametersUtils.toReportParameters(params);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(reportParameters));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     private JerseyRequest<InputControlStateListWrapper> prepareRequest() {
-        JerseyRequest<InputControlStateListWrapper> request =
-                buildRequest(sessionStorage, InputControlStateListWrapper.class,
-                        new String[]{"/reports", reportUnitUri, "/inputControls"}, new DefaultErrorHandler());
+        JerseyRequest<InputControlStateListWrapper> request = buildRequest(sessionStorage, InputControlStateListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"}, new DefaultErrorHandler());
         if (idsPathSegment != null) {
-            request.setPath(idsPathSegment);
+            request.addPathSegment(idsPathSegment);
         }
-        request.setPath("values");
+        request.addPathSegment("values");
         request.setContentType(MediaType.APPLICATION_XML);
         request.setAccept(MediaType.APPLICATION_XML);
-
         return request;
     }
-
 }

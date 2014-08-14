@@ -166,7 +166,7 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         //ThreadPoolUtil.runAsynchronously(any(RequestExecution.class));
     }
 
-    @Test(suiteName = "refactored method")
+    @Test(suiteName = "refactored length")
     public void updateOrCreate() throws Exception {
 
         // Attributes to add

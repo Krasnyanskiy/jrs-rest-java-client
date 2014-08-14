@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting;
 
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.AbstractAdapter;
@@ -36,22 +35,17 @@ public class ReportingService extends AbstractAdapter {
     }
 
     public OperationResult<ReportExecutionDescriptor> newReportExecutionRequest(ReportExecutionRequest request) {
-        return buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions"})
-                .post(request);
+        return buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions"}).post(request);
     }
 
-    public <R> RequestExecution asyncNewReportExecutionRequest(final ReportExecutionRequest reportExecutionRequest,
-                                               final Callback<OperationResult<ReportExecutionDescriptor>, R> callback) {
-        final JerseyRequest<ReportExecutionDescriptor> request =
-                buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions"});
-
+    public <R> RequestExecution asyncNewReportExecutionRequest(final ReportExecutionRequest reportExecutionRequest, final Callback<OperationResult<ReportExecutionDescriptor>, R> callback) {
+        final JerseyRequest<ReportExecutionDescriptor> request = buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
-                callback.execute(request.post(request));
+                callback.execute(request.post(reportExecutionRequest));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -67,5 +61,4 @@ public class ReportingService extends AbstractAdapter {
     public ReportsAdapter report(String reportUnitUri) {
         return new ReportsAdapter(sessionStorage, reportUnitUri);
     }
-
 }

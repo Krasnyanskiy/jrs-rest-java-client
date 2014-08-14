@@ -64,26 +64,22 @@ public class ReportParametersAdapter extends AbstractAdapter {
     public <R> RequestExecution asyncGet(final Callback<OperationResult<ReportInputControlsListWrapper>, R> callback) {
         final JerseyRequest<ReportInputControlsListWrapper> request = prepareRequest();
         final ReportParameters reportParameters = ReportParametersUtils.toReportParameters(params);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(reportParameters));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     private JerseyRequest<ReportInputControlsListWrapper> prepareRequest(){
-        JerseyRequest<ReportInputControlsListWrapper> request =
-                buildRequest(sessionStorage, ReportInputControlsListWrapper.class,
-                        new String[]{"/reports", reportUnitUri, "/inputControls"}, new DefaultErrorHandler());
+        JerseyRequest<ReportInputControlsListWrapper> request = buildRequest(sessionStorage, ReportInputControlsListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"}, new DefaultErrorHandler());
         request.setContentType(MediaType.APPLICATION_XML);
         request.setAccept(MediaType.APPLICATION_XML);
         if (idsPathSegment != null){
-            request.setPath(idsPathSegment);
+            request.addPathSegment(idsPathSegment);
         }
         return request;
     }

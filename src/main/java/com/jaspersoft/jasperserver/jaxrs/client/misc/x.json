@@ -1,0 +1,14 @@
+{
+    "uri": "/organizations/target2/Domain",
+    "label": "ARDomain",
+    "datasource": {
+        "dataSourceReference": {
+            "uri": "/organizations/target2/DataSource/ARView"
+        }
+    },
+    "schema": {
+        "schemaFileReference": {
+            "uri": "/organizations/target2/schema_xml"
+        }
+    }
+}

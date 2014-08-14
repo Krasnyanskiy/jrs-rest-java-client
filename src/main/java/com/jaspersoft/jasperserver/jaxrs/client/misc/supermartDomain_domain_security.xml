@@ -1,0 +1,37 @@
+<securityDefinition xmlns="http://www.jaspersoft.com/2007/SL/XMLSchema" version="1.0" itemGroupDefaultAccess="granted">
+    <resourceAccessGrants>
+    <resourceAccessGrantList id="sales_join_resource_access_grant" label="aLabel" resourceId="sales_join">
+      <resourceAccessGrants>
+        <resourceAccessGrant id="sales_join_ROLE_SUPERMART_MANAGER_row_grant">
+            <principalExpression>authentication.getPrincipal().getRoles().any{ it.getRoleName() in ['ROLE_SUPERMART_MANAGER'] }</principalExpression>
+            <filterExpression>store1.store_country in ('USA') and store1.store_state in ('CA')</filterExpression>
+        </resourceAccessGrant>
+      </resourceAccessGrants>
+    </resourceAccessGrantList>
+    </resourceAccessGrants>
+    <itemGroupAccessGrants>
+        <itemGroupAccessGrantList id="restrictedHR__salary" label="aLabel" itemGroupId="salary" defaultAccess="denied">
+          <itemGroupAccessGrants>
+            <itemGroupAccessGrant id="restrictedHR__salary__grant1" access="granted">
+                <principalExpression>authentication.getPrincipal().getRoles().any{ it.getRoleName() in ['ROLE_ADMINISTRATOR','ROLE_HR'] }</principalExpression>
+            </itemGroupAccessGrant>
+          </itemGroupAccessGrants>
+        </itemGroupAccessGrantList>
+        <itemGroupAccessGrantList id="restrictedHR__employee__employee_private" label="aLabel" itemGroupId="employee__employee_private" defaultAccess="denied">
+          <itemGroupAccessGrants>
+            <itemGroupAccessGrant id="restrictedHR__employee__employee_private__grant1" access="granted">
+                <principalExpression>authentication.getPrincipal().getRoles().any{ it.getRoleName() in ['ROLE_SUPERMART_MANAGER'] }</principalExpression>
+                <itemAccessGrantList id="restrictedHR__employee__employee_private__grant1__items" defaultAccess="denied">
+                  <itemAccessGrants>
+                    <itemAccessGrant id="restrictedHR__employee__employee_private__grant1__items__grant1" itemId="employee__employee_private__min_scale" access="granted" />
+                    <itemAccessGrant id="restrictedHR__employee__employee_private__grant1__items__grant2" itemId="employee__employee_private__max_scale" access="granted" />
+                  </itemAccessGrants>
+                </itemAccessGrantList>
+            </itemGroupAccessGrant>
+            <itemGroupAccessGrant id="restrictedHR__employee_private__grant1" access="granted">
+                <principalExpression>authentication.getPrincipal().getRoles().any{ it.getRoleName() in ['ROLE_ADMINISTRATOR','ROLE_HR'] }</principalExpression>
+            </itemGroupAccessGrant>
+          </itemGroupAccessGrants>
+        </itemGroupAccessGrantList>
+    </itemGroupAccessGrants>
+</securityDefinition>

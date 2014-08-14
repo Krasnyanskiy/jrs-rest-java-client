@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting.reportparameters;
 
 import com.jaspersoft.jasperserver.dto.reports.inputcontrols.ReportInputControl;
@@ -36,25 +35,20 @@ public class ReorderingReportParametersAdapter extends ReportParametersAdapter {
         super(sessionStorage, reportUnitUri);
     }
 
-    public OperationResult<ReportInputControlsListWrapper> reorder(List<ReportInputControl> inputControls){
+    public OperationResult<ReportInputControlsListWrapper> reorder(List<ReportInputControl> inputControls) {
         ReportInputControlsListWrapper wrapper = new ReportInputControlsListWrapper(inputControls);
-        return buildRequest(sessionStorage, ReportInputControlsListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"})
-                .put(wrapper);
+        return buildRequest(sessionStorage, ReportInputControlsListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"}).put(wrapper);
     }
 
-    public <R> RequestExecution asyncReorder(final List<ReportInputControl> inputControls,
-                                             final Callback<OperationResult<ReportInputControlsListWrapper>, R> callback) {
+    public <R> RequestExecution asyncReorder(final List<ReportInputControl> inputControls, final Callback<OperationResult<ReportInputControlsListWrapper>, R> callback) {
         final ReportInputControlsListWrapper wrapper = new ReportInputControlsListWrapper(inputControls);
-        final JerseyRequest<ReportInputControlsListWrapper> request =
-                buildRequest(sessionStorage, ReportInputControlsListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"});
-
+        final JerseyRequest<ReportInputControlsListWrapper> request = buildRequest(sessionStorage, ReportInputControlsListWrapper.class, new String[]{"/reports", reportUnitUri, "/inputControls"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.put(wrapper));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }

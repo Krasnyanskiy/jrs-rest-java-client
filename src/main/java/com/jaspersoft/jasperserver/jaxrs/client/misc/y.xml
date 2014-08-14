@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<semanticLayerDataSource>
+    <creationDate>2013-10-10 15:30:31</creationDate>
+    <description>Comprehensive example of Domain
+    </description>
+    <label>Supermart Domain</label>
+    <permissionMask>1</permissionMask>
+    <updateDate>2013-10-10 15:30:31</updateDate>
+    <uri>/organizations/MyCoolOrg/Domains/PapaDom</uri>
+    <version>1</version>
+    <dataSourceReference>
+        <uri>/organizations/organization_1/analysis/datasources/FoodmartDataSourceJNDI</uri>
+    </dataSourceReference>
+    <bundles>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain.properties</uri>
+            </fileReference>
+            <locale></locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_en_US.properties</uri>
+            </fileReference>
+            <locale>en_US</locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_de.properties</uri>
+            </fileReference>
+            <locale>de</locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_fr.properties</uri>
+            </fileReference>
+            <locale>fr</locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_es.properties</uri>
+            </fileReference>
+            <locale>es</locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_ja.properties</uri>
+            </fileReference>
+            <locale>ja</locale>
+        </bundle>
+        <bundle>
+            <fileReference>
+                <uri>/organizations/organization_1/Domains/supermartDomain_files/supermart_domain_zh_CN.properties
+                </uri>
+            </fileReference>
+            <locale>zh_CN</locale>
+        </bundle>
+    </bundles>
+    <schemaFileReference>
+        <uri>/organizations/organization_1/Domains/supermartDomain_files/supermartDomain_schema</uri>
+    </schemaFileReference>
+    <securityFileReference>
+        <uri>/organizations/organization_1/Domains/supermartDomain_files/supermartDomain_domain_security</uri>
+    </securityFileReference>
+</semanticLayerDataSource>

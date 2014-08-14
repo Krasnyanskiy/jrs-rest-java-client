@@ -33,20 +33,19 @@ public class ReportParametersConverter {
     public static Map<String, Object> getValueMapFromInputControlStates(List<InputControlState> states) {
         Map<String, Object> valueMap = new HashMap<String, Object>(states.size());
         for (InputControlState state : states) {
-            if (state != null)
+            if (state != null) {
                 valueMap.put(state.getId(), getValueFromInputControlState(state));
+            }
         }
-
         return valueMap;
     }
 
-    public static ReportParameters toReportParameters(List<InputControlState> states){
+    public static ReportParameters toReportParameters(List<InputControlState> states) {
         List<ReportParameter> reportParameterList = new ArrayList<ReportParameter>();
         for (InputControlState inputControlState : states) {
             ReportParameter parameter = new ReportParameter();
             parameter.setName(inputControlState.getId());
             parameter.setValues(Arrays.asList(getValueFromInputControlState(inputControlState)));
-
             reportParameterList.add(parameter);
         }
         return new ReportParameters(reportParameterList);
@@ -67,5 +66,4 @@ public class ReportParametersConverter {
             return new String[0];
         }
     }
-
 }

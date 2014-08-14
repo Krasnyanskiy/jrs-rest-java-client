@@ -193,12 +193,12 @@ public class JerseyRequestTest extends PowerMockTestCase {
         assertEquals(retrieved.getResponseClass(), Class.class);
     }
 
-    @Test(testName = "setPath")
+    @Test(testName = "addPathSegment")
     public void should_pass_proper_param_to_setPath_method_of_WebTarget_and_return_JerseyRequest_object() {
 
         // run
         JerseyRequest<Class> expected = new JerseyRequest<Class>(sessionStorage, Class.class);
-        JerseyRequest<Class> retrieved = expected.setPath(fakePath);
+        JerseyRequest<Class> retrieved = expected.addPathSegment(fakePath);
 
         // assertion and verification
         assertSame(expected, retrieved);

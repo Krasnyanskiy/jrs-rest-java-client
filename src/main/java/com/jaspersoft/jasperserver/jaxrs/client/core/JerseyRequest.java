@@ -60,7 +60,7 @@ public class JerseyRequest<ResponseType> implements RequestBuilder<ResponseType>
             request.errorHandler = new DefaultErrorHandler();
         }
         for (String pathElem : path) {
-            request.setPath(pathElem);
+            request.addPathSegment(pathElem);
         }
         return request;
     }
@@ -101,7 +101,7 @@ public class JerseyRequest<ResponseType> implements RequestBuilder<ResponseType>
                 .register(MultiPartWriter.class);
     }
 
-    public JerseyRequest<ResponseType> setPath(String path) {
+    public JerseyRequest<ResponseType> addPathSegment(String path) {
         usersWebTarget = usersWebTarget.path(path);
         return this;
     }

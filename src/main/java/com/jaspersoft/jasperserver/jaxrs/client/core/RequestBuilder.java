@@ -42,7 +42,7 @@ public interface RequestBuilder<ResponseType> {
     RequestBuilder<ResponseType> addMatrixParams(MultivaluedMap<String, String> params);
 
     //util
-    RequestBuilder<ResponseType> setPath(String path);
+    RequestBuilder<ResponseType> addPathSegment(String path);
     RequestBuilder<ResponseType> setContentType(String mime);
     RequestBuilder<ResponseType> setAccept(String acceptMime);
     RequestBuilder<ResponseType> addHeader(String name, String... values);

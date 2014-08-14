@@ -1,0 +1,44 @@
+body {
+    color: black;
+    background-color: white;
+    margin: 0;
+}
+
+* {
+    font-family: Verdana, Arial;
+    font-size: 13px;
+}
+
+h1 {
+    font-size: 26px;
+    font-weight: normal;
+    background-color: #003366;
+    color: white;
+    padding: 10px;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 3px 0px;
+}
+
+a {
+    font-weight: bold;
+    color: #336699;
+}
+
+.content {
+    margin-left: 10px;
+}
+
+input, textarea {
+    border: 1px solid gray;
+    padding: 0px 2px;
+    width: 380px;
+}
+
+button {
+    border: 2px solid black;
+    padding: 0px 2px;
+}

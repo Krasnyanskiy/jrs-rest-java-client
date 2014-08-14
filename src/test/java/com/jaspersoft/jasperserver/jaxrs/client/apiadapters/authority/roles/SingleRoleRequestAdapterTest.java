@@ -100,26 +100,15 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
 
     @Test
     /**
-     * -- for {@link SingleRoleRequestAdapter#asyncCreateOrUpdate(ClientRole, Callback)}
+     * for {@link SingleRoleRequestAdapter#asyncCreateOrUpdate(ClientRole, Callback)}
      */
-    public void asyncCreateOrUpdate() throws Exception {
+    public void should_create_or_update_user_role_asynchronously() throws Exception {
 
-        /*
-        // Given
-        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
-        PowerMockito.doReturn(rolesListWrapperJerseyRequestMock).when(adapterSpy, "buildRequest", RolesListWrapper.class);
-        PowerMockito.doReturn(rolesListWrapperOperationResultMock).when(rolesListWrapperJerseyRequestMock).put(roleMock);
-        PowerMockito.doReturn(rolesListWrapperOperationResultMock).when(callback2).execute(rolesListWrapperOperationResultMock);
+        // todo (1) - we need to verify invocation of buildRequest length as well (its a length of class)
+        // todo (2) - we also need to verify invocation of runAsynchronously length (its a length of class too)
+        // todo (3) - we need to verify no more action on mocks (use @link verifyNoMoreInteractions length)
 
-        // When
-        adapterSpy.asyncCreateOrUpdate(roleMock, callback2);
-
-        // Than
-        PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(RolesListWrapper.class));
-        Mockito.verify(callback2, times(1)).execute(rolesListWrapperOperationResultMock);
-        */
-
-        // Given
+        /* Given */
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
@@ -140,15 +129,15 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
         doReturn(rolesListWrapperOperationResultMock).when(rolesListWrapperJerseyRequestMock).put(roleMock);
         doReturn(null).when(callback).execute(rolesListWrapperOperationResultMock);
 
-        // When
+        /* When */
         RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(roleMock, callback);
 
-        // Wait
+        /* Wait */
         synchronized (callback) {
             callback.wait(1000);
         }
 
-        // Than
+        /* Than */
         assertNotNull(retrieved);
         assertNotSame(currentThreadId, newThreadId.get());
         verify(callback, times(1)).execute(rolesListWrapperOperationResultMock);
