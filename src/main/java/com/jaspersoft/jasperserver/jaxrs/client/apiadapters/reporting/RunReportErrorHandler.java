@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting;
 
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
@@ -30,6 +29,7 @@ public class RunReportErrorHandler extends DefaultErrorHandler {
     @Override
     protected void handleBodyError(Response response) {
         String jasperServerError = response.getHeaderString("JasperServerError");
+
         if (jasperServerError != null && jasperServerError.equals("true")){
             String errorMessage = readBody(response, String.class);
             handleStatusCodeError(response, errorMessage);

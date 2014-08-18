@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting;
 
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.AbstractAdapter;
@@ -41,41 +40,33 @@ public class ReportExecutionRequestBuilder extends AbstractAdapter {
     }
 
     public OperationResult<ReportExecutionStatusEntity> status() {
-        return buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"})
-                .get();
+        return buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"}).get();
     }
 
     public <R> RequestExecution asyncStatus(final Callback<OperationResult<ReportExecutionStatusEntity>, R> callback) {
-        final JerseyRequest<ReportExecutionStatusEntity> request =
-                buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"});
-
+        final JerseyRequest<ReportExecutionStatusEntity> request = buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     public OperationResult<ReportExecutionDescriptor> executionDetails() {
-        return buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId})
-                .get();
+        return buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId}).get();
     }
 
     public <R> RequestExecution asyncExecutionDetails(final Callback<OperationResult<ReportExecutionDescriptor>, R> callback) {
-        final JerseyRequest<ReportExecutionDescriptor> request =
-                buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId});
-
+        final JerseyRequest<ReportExecutionDescriptor> request = buildRequest(sessionStorage, ReportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -83,23 +74,19 @@ public class ReportExecutionRequestBuilder extends AbstractAdapter {
     public OperationResult<ReportExecutionStatusEntity> cancelExecution() {
         ReportExecutionStatusEntity statusEntity = new ReportExecutionStatusEntity();
         statusEntity.setValue("cancelled");
-        return buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"})
-                .put(statusEntity);
+        return buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"}).put(statusEntity);
     }
 
     public <R> RequestExecution asyncCancelExecution(final Callback<OperationResult<ReportExecutionStatusEntity>, R> callback) {
         final ReportExecutionStatusEntity statusEntity = new ReportExecutionStatusEntity();
         statusEntity.setValue("cancelled");
-        final JerseyRequest<ReportExecutionStatusEntity> request =
-                buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"});
-
+        final JerseyRequest<ReportExecutionStatusEntity> request = buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/status"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.put(statusEntity));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -109,24 +96,18 @@ public class ReportExecutionRequestBuilder extends AbstractAdapter {
     }
 
     public OperationResult<ExportExecutionDescriptor> runExport(ExportExecutionOptions exportExecutionOptions) {
-        return buildRequest(sessionStorage, ExportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId, "/exports"})
-                .post(exportExecutionOptions);
+        return buildRequest(sessionStorage, ExportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId, "/exports"}).post(exportExecutionOptions);
     }
 
-    public <R> RequestExecution asyncRunExport(final ExportExecutionOptions exportExecutionOptions,
-                                               final Callback<OperationResult<ExportExecutionDescriptor>, R> callback) {
-        final JerseyRequest<ExportExecutionDescriptor> request =
-                buildRequest(sessionStorage, ExportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId, "/exports"});
-
+    public <R> RequestExecution asyncRunExport(final ExportExecutionOptions exportExecutionOptions, final Callback<OperationResult<ExportExecutionDescriptor>, R> callback) {
+        final JerseyRequest<ExportExecutionDescriptor> request = buildRequest(sessionStorage, ExportExecutionDescriptor.class, new String[]{"/reportExecutions", requestId, "/exports"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(exportExecutionOptions));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
-
 }

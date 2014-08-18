@@ -22,7 +22,16 @@
 package com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling;
 
 import com.jaspersoft.jasperserver.jaxrs.client.core.ResponseStatus;
-import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.*;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.AccessDeniedException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.AuthenticationFailedException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.BadRequestException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ConflictException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.HttpMethodNotAllowedException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.InternalServerErrorException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.JSClientWebException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.RepresentationalTypeNotSupportedForResourceException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.RequestedRepresentationNotAvailableForResourceException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ResourceNotFoundException;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.common.ErrorDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

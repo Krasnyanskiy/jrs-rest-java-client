@@ -26,14 +26,15 @@ public class PageRange {
     private final long startIndex;
     private final long endIndex;
 
-    public PageRange(long startIndex, long endIndex){
+    public PageRange(long startIndex, long endIndex) {
         this.startIndex = startIndex;
         this.endIndex = endIndex;
     }
 
-    public String getRange(){
-        if (startIndex == endIndex)
+    public String getRange() {
+        if (startIndex == endIndex) {
             return String.valueOf(startIndex);
+        }
         return startIndex + "-" + endIndex;
     }
 }

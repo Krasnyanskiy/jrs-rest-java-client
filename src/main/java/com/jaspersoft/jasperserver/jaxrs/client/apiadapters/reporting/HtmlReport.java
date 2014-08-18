@@ -18,14 +18,12 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HtmlReport {
-
     private String id;
     private String html;
     private List<Attachment> attachments;
@@ -75,5 +73,4 @@ public class HtmlReport {
     public void setAttachmentsPrefix(String attachmentsPrefix) {
         this.attachmentsPrefix = attachmentsPrefix;
     }
-
 }

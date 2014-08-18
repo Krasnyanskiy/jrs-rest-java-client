@@ -33,7 +33,6 @@ import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildR
 
 
 public class ReportsAndJobsSearchAdapter extends AbstractAdapter {
-
     private final MultivaluedMap<String, String> params;
 
     public ReportsAndJobsSearchAdapter(SessionStorage sessionStorage) {
@@ -47,26 +46,21 @@ public class ReportsAndJobsSearchAdapter extends AbstractAdapter {
     }
 
     public OperationResult<ReportExecutionListWrapper> find(){
-        JerseyRequest<ReportExecutionListWrapper> request =
-                buildRequest(sessionStorage, ReportExecutionListWrapper.class, new String[]{"/reportExecutions"});
+        JerseyRequest<ReportExecutionListWrapper> request = buildRequest(sessionStorage, ReportExecutionListWrapper.class, new String[]{"/reportExecutions"});
         request.addParams(params);
         return request.get();
     }
 
     public <R> RequestExecution asyncFind(final Callback<OperationResult<ReportExecutionListWrapper>, R> callback) {
-        final JerseyRequest<ReportExecutionListWrapper> request =
-                buildRequest(sessionStorage, ReportExecutionListWrapper.class, new String[]{"/reportExecutions"});
+        final JerseyRequest<ReportExecutionListWrapper> request = buildRequest(sessionStorage, ReportExecutionListWrapper.class, new String[]{"/reportExecutions"});
         request.addParams(params);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
-
 }
