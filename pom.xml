@@ -124,15 +124,6 @@
                         <exclude>
                             **/com/jaspersoft/jasperserver/jaxrs/client/dto/**
                         </exclude>
-                        <exclude>
-                            **/com/jaspersoft/jasperserver/jaxrs/client/apiadapters/resources/**
-                        </exclude>
-                        <exclude>
-                            **/com/jaspersoft/jasperserver/jaxrs/client/apiadapters/reporting/**
-                        </exclude>
-                        <exclude>
-                            **/com/jaspersoft/jasperserver/jaxrs/client/core/**
-                        </exclude>
                     </excludes>
                     <!--<rules>-->
                         <!--<rule>-->
