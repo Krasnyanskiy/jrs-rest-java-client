@@ -23,6 +23,9 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.connection;
 
 public final class ConnectionMediaType {
 
+    /*
+     * Constants
+     */
     public static final String FTP_JSON = "application/connections.ftp+json";
     public static final String FTP_XML = "application/connections.ftp+xml";
 
