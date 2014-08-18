@@ -3,9 +3,11 @@ package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.connection;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Unit test for {@link ConnectionMediaType}
@@ -28,5 +30,15 @@ public class ConnectionMediaTypeTest {
     public void constructor_of_enum_should_be_private() {
         Constructor<?>[] constructors = ConnectionMediaType.class.getDeclaredConstructors();
         assertFalse(constructors[0].isAccessible());
+    }
+
+    @Test
+    public void magic() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+
+        Constructor<ConnectionMediaType> constructor = ConnectionMediaType.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        ConnectionMediaType instance = constructor.newInstance();
+
+        assertNotNull(instance);
     }
 }

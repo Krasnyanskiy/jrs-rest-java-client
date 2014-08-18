@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 
 public class RunReportAdapter extends AbstractAdapter {
-
     private final MultivaluedMap<String, String> params;
     private final String reportUnitUri;
     private final ReportOutputFormat format;
@@ -50,14 +49,12 @@ public class RunReportAdapter extends AbstractAdapter {
         this.format = format;
     }
 
-    public RunReportAdapter(SessionStorage sessionStorage, String reportUnitUri,
-                            ReportOutputFormat format, Integer[] pages) {
+    public RunReportAdapter(SessionStorage sessionStorage, String reportUnitUri, ReportOutputFormat format, Integer[] pages) {
         this(sessionStorage, reportUnitUri, format);
         this.pages = toStringArray(pages);
     }
 
-    public RunReportAdapter(SessionStorage sessionStorage, String reportUnitUri,
-                            ReportOutputFormat format, PageRange range) {
+    public RunReportAdapter(SessionStorage sessionStorage, String reportUnitUri, ReportOutputFormat format, PageRange range) {
         this(sessionStorage, reportUnitUri, format);
         this.pages = new String[]{range.getRange()};
     }
@@ -92,24 +89,19 @@ public class RunReportAdapter extends AbstractAdapter {
 
     public <R> RequestExecution asyncRun(final Callback<OperationResult<InputStream>, R> callback) {
         final JerseyRequest<InputStream> request = prepareRunRequest();
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
-    private JerseyRequest<InputStream> prepareRunRequest(){
-        JerseyRequest<InputStream> request =
-                buildRequest(sessionStorage, InputStream.class,
-                        new String[]{"/reports", reportUnitUri + "." + format.toString().toLowerCase()}, new RunReportErrorHandler());
+    private JerseyRequest<InputStream> prepareRunRequest() {
+        JerseyRequest<InputStream> request = buildRequest(sessionStorage, InputStream.class, new String[]{"/reports", reportUnitUri + "." + format.toString().toLowerCase()}, new RunReportErrorHandler());
         request.addParams(params);
-
         if (pages != null && pages.length > 0) {
             if (pages.length == 1) {
                 final Pattern pattern = Pattern.compile("^(\\d+)-(\\d+)$");
@@ -120,17 +112,18 @@ public class RunReportAdapter extends AbstractAdapter {
                     request.addParam("page", pages[0]);
                 }
             }
-            if (pages.length > 1)
+            if (pages.length > 1) {
                 request.addParam("pages", pages);
+            }
         }
         return request;
     }
 
     private String[] toStringArray(Integer[] ints) {
         String[] strings = new String[ints.length];
-        for (int i = 0; i < ints.length; i++)
+        for (int i = 0; i < ints.length; i++) {
             strings[i] = ints[i].toString();
+        }
         return strings;
     }
-
 }
