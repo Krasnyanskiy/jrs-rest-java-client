@@ -39,13 +39,15 @@ public class ErrorDescriptor {
     private String errorCode;
     private String[] parameters;
 
-    public ErrorDescriptor(){}
-    public ErrorDescriptor(Throwable cause){
+    public ErrorDescriptor() {
+    }
+
+    public ErrorDescriptor(Throwable cause) {
         this.errorCode = ERROR_CODE_UNEXPECTED_ERROR;
         this.message = "Unexpected error";
         this.parameters = new String[]{
-                        cause.getClass().getName() +
-                                (cause.getMessage() != null && !"".equals(cause.getMessage()) ? ": " + cause.getMessage() : "")};
+                cause.getClass().getName() +
+                        (cause.getMessage() != null && !"".equals(cause.getMessage()) ? ": " + cause.getMessage() : "")};
     }
 
 
@@ -74,16 +76,16 @@ public class ErrorDescriptor {
     public void setParameters(String... parameters) {
         this.parameters = parameters;
     }
-    
-    public void setParameters(Object... args){
-        if(args != null && args.length > 0){
+
+    public void setParameters(Object... args) {
+        if (args != null && args.length > 0) {
             List<String> values = new LinkedList<String>();
-            for (Object arg : args){
-                if (arg != null){
+            for (Object arg : args) {
+                if (arg != null) {
                     values.add(arg.toString());
                 }
             }
-            if (!values.isEmpty()){
+            if (!values.isEmpty()) {
                 parameters = values.toArray(new String[values.size()]);
             }
         }
@@ -120,30 +122,30 @@ public class ErrorDescriptor {
                 '}';
     }
 
-    public static class Builder{
+    public static class Builder {
         private ErrorDescriptor errorDescriptor = new ErrorDescriptor();
 
-        public Builder setMessage(String message){
+        public Builder setMessage(String message) {
             this.errorDescriptor.setMessage(message);
             return this;
         }
 
-        public Builder setErrorCode(String errorCode){
+        public Builder setErrorCode(String errorCode) {
             this.errorDescriptor.setErrorCode(errorCode);
             return this;
         }
 
-        public Builder setParameters(String... parameters){
+        public Builder setParameters(String... parameters) {
             this.errorDescriptor.setParameters(parameters);
             return this;
         }
 
-        public Builder setParameters(Object... args){
+        public Builder setParameters(Object... args) {
             this.errorDescriptor.setParameters(args);
             return this;
         }
 
-        public ErrorDescriptor getErrorDescriptor(){
+        public ErrorDescriptor getErrorDescriptor() {
             return errorDescriptor;
         }
     }

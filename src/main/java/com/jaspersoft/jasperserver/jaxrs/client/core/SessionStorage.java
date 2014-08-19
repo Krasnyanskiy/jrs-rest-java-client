@@ -84,13 +84,13 @@ public class SessionStorage {
         }
 
         Client client = clientBuilder.build();
-        Long connectionTimeout = configuration.getConnectionTimeout();
+        Integer connectionTimeout = configuration.getConnectionTimeout();
 
         if (connectionTimeout != null) {
             client.property(ClientProperties.CONNECT_TIMEOUT, connectionTimeout);
         }
 
-        Long readTimeout = configuration.getReadTimeout();
+        Integer readTimeout = configuration.getReadTimeout();
         if (readTimeout != null) {
             client.property(ClientProperties.READ_TIMEOUT, readTimeout);
         }
@@ -105,8 +105,7 @@ public class SessionStorage {
         Map<String, String> securityAttributes = getSecurityAttributes();
 
         Form form = new Form();
-        form
-                .param("j_username", credentials.getUsername())
+        form.param("j_username", credentials.getUsername())
                 .param("j_password", securityAttributes.get("password"));
 
         Response response = rootTarget
@@ -118,8 +117,9 @@ public class SessionStorage {
 
         if (response.getStatus() == ResponseStatus.FOUND) {
             this.sessionId = parseSessionId(response);
-        } else
+        } else {
             new DefaultErrorHandler().handleError(response);
+        }
     }
 
     private Map<String, String> getSecurityAttributes() {
@@ -127,10 +127,12 @@ public class SessionStorage {
         Map<String, String> encryptionParams = EncryptionUtils.parseEncryptionParams(encryptionParamsResponse);
         String loginSessionId = encryptionParamsResponse.getCookies().get("JSESSIONID").getValue();
         String encryptedPassword;
-        if (encryptionParams != null)
+
+        if (encryptionParams != null) {
             encryptedPassword = EncryptionUtils.encryptPassword(credentials.getPassword(), encryptionParams.get("n"), encryptionParams.get("e"));
-        else
+        } else {
             encryptedPassword = credentials.getPassword();
+        }
 
         Map<String, String> securityAttributes = new HashMap<String, String>();
         securityAttributes.put("password", encryptedPassword);
@@ -146,8 +148,9 @@ public class SessionStorage {
             Pattern pattern = Pattern.compile("JSESSIONID=(\\w+);");
             Matcher matcher;
             matcher = pattern.matcher(cookieList);
-            if (matcher.find())
+            if (matcher.find()) {
                 return matcher.group(1);
+            }
         }
 
         if (response.getHeaderString("Location").endsWith("error=1")) {

@@ -34,7 +34,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
@@ -244,10 +243,9 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
     }
 
 
-    @Test
+    @Test(enabled = false)
     public void asyncDelete() throws Exception {
 
-        /*
         // Given
         StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
         BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
@@ -262,30 +260,23 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         // Than
         PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("request");
         Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
-        */
     }
 
     @Test(testName = "private")
     public void request() throws Exception {
-
-        // Given
+        /* Given */
         PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class),
-                eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.doReturn(operationResultMock).when(requestMock).delete();
 
-        StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
-        PowerMockito.when(builderMock.toString()).thenReturn("uri");
-        BatchAttributeAdapter adapterSpy = spy(new BatchAttributeAdapter(sessionStorageMock, builderMock));
-
-        // When
+        /* When */
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, new StringBuilder("uri")));
         adapterSpy.delete();
 
-        // Than
-        verifyStatic(times(1));
-        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class),
-                eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class));
-
-        verifyPrivate(adapterSpy, times(1)).invoke("request");
+        /* Than */
+        assertNotNull(adapterSpy);
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class));
     }
 
     @AfterMethod

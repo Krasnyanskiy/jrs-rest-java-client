@@ -42,13 +42,13 @@ public class RestClientConfiguration {
     private MimeType acceptMimeType = MimeType.JSON;
     private JRSVersion jrsVersion = JRSVersion.v5_5_0;
     private TrustManager[] trustManagers;
-    private Long connectionTimeout;
-    private Long readTimeout;
+    private Integer connectionTimeout;
+    private Integer readTimeout;
     private String datePattern = "yyyy-MM-dd";
     private String dateTimePattern = "yyyy-MM-dd HH:mm:ss";
 
     public RestClientConfiguration(String jasperReportsServerUrl) {
-        this(); // untestable invocation, but we can test behaviour of the class by observing changes in its state (trustManagers)
+        this();
         setJasperReportsServerUrl(jasperReportsServerUrl);
     }
 
@@ -76,8 +76,9 @@ public class RestClientConfiguration {
 
     public final void setJasperReportsServerUrl(String jasperReportsServerUrl) {
         Matcher matcher = URL_PATTERN.matcher(jasperReportsServerUrl);
-        if (!matcher.matches())
+        if (!matcher.matches()) {
             throw new IllegalArgumentException("Given parameter is not a URL");
+        }
         this.jasperReportsServerUrl = jasperReportsServerUrl;
     }
 
@@ -113,19 +114,19 @@ public class RestClientConfiguration {
         this.trustManagers = trustManagers;
     }
 
-    public Long getConnectionTimeout() {
+    public Integer getConnectionTimeout() {
         return connectionTimeout;
     }
 
-    public void setConnectionTimeout(Long connectionTimeout) {
+    public void setConnectionTimeout(Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
 
-    public Long getReadTimeout() {
+    public Integer getReadTimeout() {
         return readTimeout;
     }
 
-    public void setReadTimeout(Long readTimeout) {
+    public void setReadTimeout(Integer readTimeout) {
         this.readTimeout = readTimeout;
     }
 
@@ -146,19 +147,20 @@ public class RestClientConfiguration {
     }
 
     public static RestClientConfiguration loadConfiguration(String path) {
-        Properties properties = loadProperties(path);
 
+        Properties properties = loadProperties(path);
         RestClientConfiguration configuration = new RestClientConfiguration();
         configuration.setJasperReportsServerUrl(properties.getProperty("url"));
-
         String connectionTimeout = properties.getProperty("connectionTimeout");
+
         if (connectionTimeout != null && !connectionTimeout.equals("")) {
-            configuration.setConnectionTimeout(Long.valueOf(connectionTimeout));
+            configuration.setConnectionTimeout(Integer.valueOf(connectionTimeout));
         }
 
         String readTimeout = properties.getProperty("readTimeout");
+
         if (readTimeout != null && !readTimeout.equals("")) {
-            configuration.setReadTimeout(Long.valueOf(readTimeout));
+            configuration.setReadTimeout(Integer.valueOf(readTimeout));
         }
 
         try {
@@ -172,7 +174,6 @@ public class RestClientConfiguration {
         } catch (Exception e) {
             log.info("There is no mime type for accept type or it isn't supported.", e);
         }
-
         return configuration;
     }
 

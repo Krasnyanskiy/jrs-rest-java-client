@@ -3,16 +3,20 @@ package com.jaspersoft.jasperserver.jaxrs.client.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.api.support.membermodification.MemberMatcher;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
@@ -29,6 +33,7 @@ import static org.powermock.api.easymock.PowerMock.expectPrivate;
 import static org.powermock.api.easymock.PowerMock.mockStaticPartial;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.support.membermodification.MemberMatcher.field;
+import static org.powermock.api.support.membermodification.MemberMatcher.method;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
@@ -40,14 +45,20 @@ import static org.testng.AssertJUnit.assertNull;
  *
  * @author Alexander Krasnyanskiy
  */
-@PrepareForTest({RestClientConfiguration.class, LogFactory.class})
+@PrepareForTest({RestClientConfiguration.class, Properties.class, LogFactory.class, X509TrustManager.class})
 public class RestClientConfigurationTest extends PowerMockTestCase {
 
     @Mock
     private Log logMock;
 
     @Mock
+    private Properties propertiesMock;
+
+    @Mock
     private RestClientConfiguration configMock;
+
+    @Mock
+    private X509TrustManager managerMock;
 
     private Properties fakeProps = new Properties() {{
         setProperty("url", "http://localhost:8080/jasperserver-pro/");
@@ -79,38 +90,23 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
     }
 
     @Test(testName = "RestClientConfiguration_parametrized_constructor")
-    public void should_invoke_default_constructor_and_pass_valid_URL_to_setJasperReportsServerUrl_method()
-            throws Exception {
-
-        // When
+    public void should_invoke_default_constructor_and_pass_valid_URL_to_setJasperReportsServerUrl_method() throws Exception {
         String fakedValidUrl = "http://localhost:8080/jasperserver-pro/";
         RestClientConfiguration config = new RestClientConfiguration(fakedValidUrl);
-
-        /**
-         * We can't test that this() is called, but we can test behaviour of the class by observing
-         * changes in its state.
-         */
-        // Than
         assertNotNull(config.getTrustManagers());
         assertTrue(config.getTrustManagers().length > 0);
         assertNotNull(config.getTrustManagers()[0]);
-        //assertTrue(instanceOf(X509TrustManager.class).matches(config.getTrustManagers()[0])); TODO: how to test this kakashka class?
         assertEquals(config.getJasperReportsServerUrl(), fakedValidUrl);
     }
 
-    @Test(testName = "RestClientConfiguration_parametrized_constructor",
-            expectedExceptions = IllegalArgumentException.class)
+    @Test(testName = "RestClientConfiguration_parametrized_constructor", expectedExceptions = IllegalArgumentException.class)
     public void should_throw_exception_when_pass_invalid_URL_to_the_constructor() {
         new RestClientConfiguration("invalidURL");
     }
 
     @Test(testName = "RestClientConfiguration_constructor_without_parameters")
     public void should_create_an_instance_of_RestClientConfiguration_but_without_setting_jasperReportsServerUrl() {
-
-        // When
         RestClientConfiguration config = new RestClientConfiguration();
-
-        //Than
         assertNotNull(config.getTrustManagers());
         assertTrue(config.getTrustManagers().length > 0);
         assertNull(config.getJasperReportsServerUrl()); // URL must be null
@@ -147,8 +143,7 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
         mockStaticPartial(RestClientConfiguration.class, "loadProperties");
         Method[] methods = MemberMatcher.methods(RestClientConfiguration.class, "loadProperties");
 
-        expectPrivate(RestClientConfiguration.class, methods[0], "superCoolPath")
-                .andReturn(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout);
+        expectPrivate(RestClientConfiguration.class, methods[0], "superCoolPath").andReturn(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout);
         replay(RestClientConfiguration.class);
 
         // When
@@ -158,32 +153,21 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
         assertEquals(configuration.getJasperReportsServerUrl(), fakeProps.getProperty("url"));
         assertEquals(configuration.getContentMimeType().toString(), fakeProps.getProperty("contentMimeType"));
         assertEquals(configuration.getAcceptMimeType().toString(), fakeProps.getProperty("acceptMimeType"));
-
-        assertSame(configuration.getConnectionTimeout(),
-                Long.valueOf(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout
-                        .getProperty("connectionTimeout"))); // should be 20L
-
-        assertSame(configuration.getReadTimeout(),
-                Long.valueOf(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout
-                        .getProperty("readTimeout"))); // should be 100L
-
+        assertSame(configuration.getConnectionTimeout(), Integer.valueOf(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout.getProperty("connectionTimeout"))); // should be 20
+        assertSame(configuration.getReadTimeout(), Integer.valueOf(fakePropsWithNotEmptyConnectionTimeoutAndReadTimeout.getProperty("readTimeout"))); // should be 100
         assertNotNull(configuration.getTrustManagers());
     }
 
     @Test(testName = "loadConfiguration")
-    public void should_fire_logging_info_method_when_given_AcceptMimeType_and_ContentMimeType_are_invalid()
-            throws Exception {
+    public void should_fire_logging_info_method_when_given_AcceptMimeType_and_ContentMimeType_are_invalid() throws Exception {
 
         // Given
         mockStaticPartial(RestClientConfiguration.class, "loadProperties");
         Method[] methods = MemberMatcher.methods(RestClientConfiguration.class, "loadProperties");
 
-        expectPrivate(RestClientConfiguration.class, methods[0], "superCoolPath")
-                .andReturn(fakePropsWithUnproperAcceptMimeTypeAndContentMimeType);
+        expectPrivate(RestClientConfiguration.class, methods[0], "superCoolPath").andReturn(fakePropsWithUnproperAcceptMimeTypeAndContentMimeType);
 
-        PowerMockito.whenNew(RestClientConfiguration.class)
-                .withNoArguments()
-                .thenReturn(configMock);
+        PowerMockito.whenNew(RestClientConfiguration.class).withNoArguments().thenReturn(configMock);
 
         // Mocked static member injection into the mock.
         Field field = field(RestClientConfiguration.class, "log");
@@ -202,12 +186,8 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
      */
     @Test(testName = "setJrsVersion")
     public void should_set_setJrsVersion_field() throws IllegalAccessException {
-
-        // When
         RestClientConfiguration config = new RestClientConfiguration();
         config.setJrsVersion(JRSVersion.v5_0_0);
-
-        // Than
         Field field = field(RestClientConfiguration.class, "jrsVersion");
         Object retrieved = field.get(config);
         assertNotNull(retrieved);
@@ -216,21 +196,17 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
 
     @Test(testName = "setJrsVersion")
     public void should_get_not_null_setJrsVersion_field() throws IllegalAccessException {
-
-        // When
-        final RestClientConfiguration config = new RestClientConfiguration();
-        final Field field = field(RestClientConfiguration.class, "jrsVersion");
+        RestClientConfiguration config = new RestClientConfiguration();
+        Field field = field(RestClientConfiguration.class, "jrsVersion");
         field.set(config, JRSVersion.v4_7_0);
-
-        // Than
         assertEquals(config.getJrsVersion(), JRSVersion.v4_7_0);
     }
 
     @Test(testName = "setTrustManagers")
     public void should_set_TrustManagers_with_proper_TrustManagers_object() throws Exception {
         // Given
-        final RestClientConfiguration config = new RestClientConfiguration();
-        final X509TrustManager expected = new X509TrustManager() {
+        RestClientConfiguration config = new RestClientConfiguration();
+        X509TrustManager expected = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
 
@@ -257,13 +233,8 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
 
     @Test(testName = "setDatePattern")
     public void should_set_datePattern_field_with_proper_value() throws IllegalAccessException {
-        // Given
-        final RestClientConfiguration config = new RestClientConfiguration();
-
-        // When
+        RestClientConfiguration config = new RestClientConfiguration();
         config.setDatePattern("dummyDatePattern");
-
-        // Then
         Field field = field(RestClientConfiguration.class, "datePattern");
         String retrieved = (String) field.get(config);
         assertEquals(retrieved, "dummyDatePattern");
@@ -271,26 +242,16 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
 
     @Test(testName = "getDatePattern")
     public void should_get_not_null_datePattern_field() throws IllegalAccessException {
-        // Given
-        final RestClientConfiguration config = new RestClientConfiguration();
-
-        // When
-        final Field field = field(RestClientConfiguration.class, "datePattern");
+        RestClientConfiguration config = new RestClientConfiguration();
+        Field field = field(RestClientConfiguration.class, "datePattern");
         field.set(config, "dummyDatePattern");
-
-        // Than
         assertEquals(config.getDatePattern(), "dummyDatePattern");
     }
 
     @Test(testName = "setDateTimePattern")
     public void should_set_dateTimePattern_field_with_proper_value() throws IllegalAccessException {
-        // Given
-        final RestClientConfiguration config = new RestClientConfiguration();
-
-        // When
+        RestClientConfiguration config = new RestClientConfiguration();
         config.setDateTimePattern("dummyDateTimePattern");
-
-        // Then
         Field field = field(RestClientConfiguration.class, "dateTimePattern");
         String retrieved = (String) field.get(config);
         assertEquals(retrieved, "dummyDateTimePattern");
@@ -309,8 +270,50 @@ public class RestClientConfigurationTest extends PowerMockTestCase {
         assertEquals(config.getDateTimePattern(), "dummyDateTimePattern");
     }
 
+    @Test
+    public void should_invoke_private_method() throws Exception {
+
+        Properties propertiesSpy = PowerMockito.spy(new Properties());
+
+        propertiesSpy.setProperty("url", "http://localhost:8080/jasperserver-pro/");
+        propertiesSpy.setProperty("contentMimeType", "JSON");
+        propertiesSpy.setProperty("acceptMimeType", "JSON");
+        propertiesSpy.setProperty("connectionTimeout", "");
+        propertiesSpy.setProperty("readTimeout", "");
+
+        PowerMockito.whenNew(Properties.class).withNoArguments().thenReturn(propertiesSpy);
+        PowerMockito.doNothing().when(propertiesSpy).load(any(InputStream.class));
+        PowerMockito.suppress(method(Properties.class, "load", InputStream.class));
+
+        RestClientConfiguration retrieved = RestClientConfiguration.loadConfiguration("path");
+
+        AssertJUnit.assertNotNull(retrieved);
+        Mockito.verify(propertiesSpy, times(1)).load(any(InputStream.class));
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void should_throw_an_exception_while_loading_props() throws Exception {
+        RestClientConfiguration retrieved = RestClientConfiguration.loadConfiguration("path");
+    }
+
+    @Test
+    public void test() throws Exception {
+
+        RestClientConfiguration config = Mockito.spy(new RestClientConfiguration());
+        TrustManager[] managers = config.getTrustManagers();
+
+        assertNotNull(managers);
+        Assert.assertTrue(managers.length == 1);
+
+        ((X509TrustManager) managers[0]).checkClientTrusted(null, "abc");
+        ((X509TrustManager) managers[0]).checkServerTrusted(null, "abc");
+        X509Certificate[] retrieved = ((X509TrustManager) managers[0]).getAcceptedIssuers();
+
+        Assert.assertNull(retrieved);
+    }
+
     @AfterMethod
     public void tearDown() {
-        reset(configMock, logMock);
+        reset(configMock, logMock, propertiesMock, managerMock);
     }
 }
