@@ -3,6 +3,7 @@ package com.jaspersoft.jasperserver.jaxrs.client.core;//package com.jaspersoft.j
 import com.jaspersoft.jasperserver.jaxrs.client.filters.SessionOutputFilter;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -111,7 +112,10 @@ public class SessionStorageTest extends PowerMockTestCase {
         PowerMockito.when(SSLContext.getInstance("SSL")).thenReturn(ctxMock);
 
         PowerMockito.mockStatic(EncryptionUtils.class);
-        PowerMockito.when(EncryptionUtils.parseEncryptionParams(responseMock)).thenReturn(new HashMap<String, String>(){{put("n", "abc");put("e", "abc");}});
+        PowerMockito.when(EncryptionUtils.parseEncryptionParams(responseMock)).thenReturn(new HashMap<String, String>() {{
+            put("n", "abc");
+            put("e", "abc");
+        }});
 
 
         PowerMockito.doReturn("https://abc").when(configurationMock).getJasperReportsServerUrl();
@@ -139,7 +143,9 @@ public class SessionStorageTest extends PowerMockTestCase {
         PowerMockito.when(invocationBuilderMock.post(any(javax.ws.rs.client.Entity.class))).thenReturn(responseMock);
 
         PowerMockito.when(responseMock.readEntity(String.class)).thenReturn("abc");
-        PowerMockito.when(responseMock.getCookies()).thenReturn(new HashMap<String, NewCookie>(){{put("JSESSIONID", new NewCookie(new Cookie("name", "value", "domain", "version")));}});
+        PowerMockito.when(responseMock.getCookies()).thenReturn(new HashMap<String, NewCookie>() {{
+            put("JSESSIONID", new NewCookie(new Cookie("name", "value", "domain", "version")));
+        }});
 
         /* When */
 
@@ -204,6 +210,22 @@ public class SessionStorageTest extends PowerMockTestCase {
         SessionStorage sessionStorageSpy = PowerMockito.spy(new SessionStorage(configurationMock, credentialsMock));
 
         /* Than throw an exception */
+    }
+
+    @Test(enabled = false)
+    public void should_set_and_get_state_for_object() {
+
+        /* Given */
+        PowerMockito.suppress(method(SessionStorage.class, "init"));
+        SessionStorage sessionStorageSpy = PowerMockito.spy(new SessionStorage(configurationMock, credentialsMock));
+        Whitebox.setInternalState(sessionStorageSpy, "rootTarget", targetMock);
+        Whitebox.setInternalState(sessionStorageSpy, "sessionId", "sessionId");
+
+        /* Verify */
+        assertNotNull(sessionStorageSpy.getConfiguration());
+        assertNotNull(sessionStorageSpy.getCredentials());
+        assertNotNull(sessionStorageSpy.getRootTarget());
+        assertNotNull(sessionStorageSpy.getSessionId());
     }
 
     @AfterMethod

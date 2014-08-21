@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources;
 
 
@@ -31,8 +30,6 @@ import java.util.Map;
 public class ResourcesTypeResolverUtil {
 
     private static final Map<Class<? extends ClientResource>, String> classToMimeMap;
-
-
     private static final Map<String, Class<? extends ClientResource>> mimeToClassMap;
 
     static {
@@ -61,11 +58,11 @@ public class ResourcesTypeResolverUtil {
         }};
 
         mimeToClassMap = new HashMap<String, Class<? extends ClientResource>>();
+
         for (Map.Entry<Class<? extends ClientResource>, String> entry : classToMimeMap.entrySet()) {
             mimeToClassMap.put(entry.getValue(), entry.getKey());
         }
     }
-
 
     public static String getMimeType(Class<? extends ClientResource> clazz) {
         return classToMimeMap.get(clazz);
@@ -78,5 +75,4 @@ public class ResourcesTypeResolverUtil {
     public static Class<? extends ClientResource> getResourceType(ClientResource resource) {
         return resource.getClass();
     }
-
 }

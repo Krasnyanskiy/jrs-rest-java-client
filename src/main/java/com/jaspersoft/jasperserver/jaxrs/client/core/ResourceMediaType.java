@@ -24,7 +24,6 @@ package com.jaspersoft.jasperserver.jaxrs.client.core;
 import java.util.Arrays;
 import java.util.List;
 
-
 public interface ResourceMediaType {
     public static final String RESOURCE_MEDIA_TYPE_PREFIX = "application/repository.";
     public static final String RESOURCE_MIME_TYPE = "+{mime}";
@@ -105,12 +104,7 @@ public interface ResourceMediaType {
             SEMANTIC_LAYER_DATA_SOURCE_CLIENT_TYPE
     );
 
-    //AnyDatasource
-    //not exist as string representation of resource type
-    //used as defenition of any datasource type
     public static final String ANY_DATASOURCE_TYPE = "anyDatasource";
-
-    //TODO : it sould be implemented in search
     public static final String DOMAIN_TOPIC_TYPE = "domainTopic";
 }
 

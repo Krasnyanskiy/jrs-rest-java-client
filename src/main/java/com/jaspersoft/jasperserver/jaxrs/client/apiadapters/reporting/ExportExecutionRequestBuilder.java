@@ -18,23 +18,24 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting;
 
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.AbstractAdapter;
-import com.jaspersoft.jasperserver.jaxrs.client.core.*;
+import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
+import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
+import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
+import com.jaspersoft.jasperserver.jaxrs.client.core.ThreadPoolUtil;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.JSClientException;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.AttachmentDescriptor;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ExportDescriptor;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ReportExecutionStatusEntity;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 
 public class ExportExecutionRequestBuilder extends AbstractAdapter {
     private String requestId;
@@ -51,9 +52,12 @@ public class ExportExecutionRequestBuilder extends AbstractAdapter {
      * in other cases it should be parametrized with <code>InputStream</code>
      */
     private OperationResult outputResource(boolean isHtmlExport) {
-        return buildRequest(sessionStorage, isHtmlExport ? String.class : InputStream.class,
-                new String[]{"/reportExecutions", requestId, "/exports", exportId, "/outputResource"})
-                .get();
+        return JerseyRequest.buildRequest(
+                sessionStorage,
+                isHtmlExport
+                        ? String.class
+                        : InputStream.class,
+                new String[]{"/reportExecutions", requestId, "/exports", exportId, "/outputResource"}).get();
     }
 
     public OperationResult<InputStream> outputResource() {
@@ -61,47 +65,35 @@ public class ExportExecutionRequestBuilder extends AbstractAdapter {
     }
 
     public <R> RequestExecution asyncOutputResource(final Callback<OperationResult<InputStream>, R> callback) {
-        final JerseyRequest<InputStream> request =
-                buildRequest(sessionStorage, InputStream.class,
-                        new String[]{"/reportExecutions", requestId, "/exports", exportId, "/outputResource"});
-
+        final JerseyRequest<InputStream> request = JerseyRequest.buildRequest(sessionStorage, InputStream.class, new String[]{"/reportExecutions", requestId, "/exports", exportId, "/outputResource"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     public OperationResult<InputStream> attachment(String attachmentId) {
-
-        if ("".equals(attachmentId) || "/".equals(attachmentId))
+        if ("".equals(attachmentId) || "/".equals(attachmentId)) {
             throw new IllegalArgumentException("'attachmentId' mustn't be an empty string");
-
+        }
         while (!"ready".equals(status().getEntity().getValue())) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ignored) {
             }
         }
-
-        return buildRequest(sessionStorage, InputStream.class,
-                new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId})
-                .get();
+        return JerseyRequest.buildRequest(sessionStorage, InputStream.class, new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId}).get();
     }
 
     public <R> RequestExecution asyncAttachment(final String attachmentId, final Callback<OperationResult<InputStream>, R> callback) {
-
-        if ("".equals(attachmentId) || "/".equals(attachmentId))
+        if ("".equals(attachmentId) || "/".equals(attachmentId)) {
             throw new IllegalArgumentException("'attachmentId' mustn't be an empty string");
-
-        final JerseyRequest<InputStream> request =
-                buildRequest(sessionStorage, InputStream.class,
-                        new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId});
-
+        }
+        final JerseyRequest<InputStream> request = JerseyRequest.buildRequest(sessionStorage, InputStream.class, new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
@@ -114,58 +106,45 @@ public class ExportExecutionRequestBuilder extends AbstractAdapter {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     public OperationResult<ReportExecutionStatusEntity> status() {
-        return buildRequest(sessionStorage, ReportExecutionStatusEntity.class,
-                new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"})
-                .get();
+        return JerseyRequest.buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"}).get();
     }
 
     public <R> RequestExecution asyncStatus(final Callback<OperationResult<ReportExecutionStatusEntity>, R> callback) {
-        final JerseyRequest<ReportExecutionStatusEntity> request =
-                buildRequest(sessionStorage, ReportExecutionStatusEntity.class,
-                        new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"});
-
+        final JerseyRequest<ReportExecutionStatusEntity> request = JerseyRequest.buildRequest(sessionStorage, ReportExecutionStatusEntity.class, new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
     public HtmlReport htmlReport(ExportDescriptor htmlExport) {
-        //if (exportId.toLowerCase().startsWith("html") && htmlExport.getId().toLowerCase().startsWith("html")) {
-            HtmlReport htmlReport = new HtmlReport(htmlExport.getId());
 
-            OperationResult<String> markup = outputResource(true);
-            htmlReport.setHtml(markup.getEntity());
+        HtmlReport htmlReport = new HtmlReport(htmlExport.getId());
+        OperationResult<String> markup = outputResource(true);
+        htmlReport.setHtml(markup.getEntity());
+        List<AttachmentDescriptor> attachments = htmlExport.getAttachments();
 
-            List<AttachmentDescriptor> attachments = htmlExport.getAttachments();
-            if (attachments != null) {
-                for (AttachmentDescriptor attachmentDescriptor : attachments) {
-                    String fileName = attachmentDescriptor.getFileName();
-                    OperationResult<InputStream> streamOperationResult = attachment(fileName);
-
-                    Attachment attachment = new Attachment();
-                    attachment.setName(attachmentDescriptor.getFileName());
-                    attachment.setMimeType(attachmentDescriptor.getContentType());
-                    attachment.setContent(toByteArray(streamOperationResult.getEntity()));
-
-                    htmlReport.addAttachment(attachment);
-                }
+        if (attachments != null) {
+            for (AttachmentDescriptor attachmentDescriptor : attachments) {
+                String fileName = attachmentDescriptor.getFileName();
+                OperationResult<InputStream> streamOperationResult = attachment(fileName);
+                Attachment attachment = new Attachment();
+                attachment.setName(attachmentDescriptor.getFileName());
+                attachment.setMimeType(attachmentDescriptor.getContentType());
+                attachment.setContent(toByteArray(streamOperationResult.getEntity()));
+                htmlReport.addAttachment(attachment);
             }
-
-            return htmlReport;
-        //}
-        //throw new JSClientException("Output format is not 'HTML'");
+        }
+        return htmlReport;
     }
 
     public <R> RequestExecution asyncHtmlReport(final ExportDescriptor htmlExport, final Callback<HtmlReport, R> callback) {
@@ -182,18 +161,7 @@ public class ExportExecutionRequestBuilder extends AbstractAdapter {
 
     private byte[] toByteArray(InputStream is) {
         try {
-            List<Byte> bytes = new ArrayList<Byte>();
-            byte[] buff = new byte[1024];
-            while (is.read(buff) != -1) {
-                for (byte b : buff)
-                    bytes.add(b);
-            }
-
-            byte[] result = new byte[bytes.size()];
-            for (int i = 0; i < bytes.size(); i++) {
-                result[i] = bytes.get(i);
-            }
-            return result;
+            return IOUtils.toByteArray(is);
         } catch (IOException e) {
             throw new JSClientException("Error while reading report content", e);
         }

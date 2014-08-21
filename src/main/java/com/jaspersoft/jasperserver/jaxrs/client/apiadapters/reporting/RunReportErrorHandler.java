@@ -30,7 +30,7 @@ public class RunReportErrorHandler extends DefaultErrorHandler {
     protected void handleBodyError(Response response) {
         String jasperServerError = response.getHeaderString("JasperServerError");
 
-        if (jasperServerError != null && jasperServerError.equals("true")){
+        if (jasperServerError != null && jasperServerError.equals("true")) {
             String errorMessage = readBody(response, String.class);
             handleStatusCodeError(response, errorMessage);
         }

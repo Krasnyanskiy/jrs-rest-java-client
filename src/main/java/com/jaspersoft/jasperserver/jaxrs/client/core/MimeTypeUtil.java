@@ -38,8 +38,7 @@ public class MimeTypeUtil {
 
     public static String toCorrectAcceptMime(RestClientConfiguration configuration, String srcMime) {
         if (srcMime.endsWith("{mime}")) {
-            String x = srcMime.replace("{mime}", configuration.getAcceptMimeType() == MimeType.JSON ? JSON_SUFFIX : XML_SUFFIX);
-            return x;
+            return srcMime.replace("{mime}", configuration.getAcceptMimeType() == MimeType.JSON ? JSON_SUFFIX : XML_SUFFIX);
         }
         return srcMime;
     }

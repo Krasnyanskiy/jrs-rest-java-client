@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.core.operationresult;
 
 import com.jaspersoft.jasperserver.dto.resources.ClientResource;
@@ -26,10 +25,10 @@ import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources.ResourcesT
 
 import javax.ws.rs.core.Response;
 
-
 public class OperationResultFactoryImpl implements OperationResultFactory {
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> OperationResult<T> getOperationResult(Response response, Class<T> responseClass) {
         if (isClientResource(responseClass)) {
             responseClass = (Class<T>) getSpecificResourceType(response);
@@ -37,6 +36,7 @@ public class OperationResultFactoryImpl implements OperationResultFactory {
         return getAppropriateOperationResultInstance(response, responseClass);
     }
 
+    @SuppressWarnings("unchecked")
     private <T> OperationResult<T> getAppropriateOperationResultInstance(Response response, Class<T> responseClass) {
         OperationResult<T> result;
         if (response.hasEntity()) {

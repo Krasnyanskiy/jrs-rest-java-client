@@ -35,27 +35,26 @@ public class ReportsAdapter extends AbstractAdapter {
 
     private final String reportUnitUri;
 
-    public ReportsAdapter(SessionStorage sessionStorage, String reportUnitUri){
+    public ReportsAdapter(SessionStorage sessionStorage, String reportUnitUri) {
         super(sessionStorage);
         this.reportUnitUri = reportUnitUri;
     }
 
-    public ReorderingReportParametersAdapter reportParameters(){
+    public ReorderingReportParametersAdapter reportParameters() {
         return new ReorderingReportParametersAdapter(sessionStorage, reportUnitUri);
     }
 
-    public ReportParametersAdapter reportParameters(String mandatoryId, String... otherIds){
+    public ReportParametersAdapter reportParameters(String mandatoryId, String... otherIds) {
         List<String> ids = new ArrayList<String>(Arrays.asList(otherIds));
         ids.add(0, mandatoryId);
         return new ReportParametersAdapter(sessionStorage, reportUnitUri, ReportParametersUtils.toPathSegment(ids));
     }
 
-    public RunReportAdapter prepareForRun(ReportOutputFormat format, Integer... pages){
+    public RunReportAdapter prepareForRun(ReportOutputFormat format, Integer... pages) {
         return new RunReportAdapter(sessionStorage, reportUnitUri, format, pages);
     }
 
-    public RunReportAdapter prepareForRun(ReportOutputFormat format, PageRange range){
+    public RunReportAdapter prepareForRun(ReportOutputFormat format, PageRange range) {
         return new RunReportAdapter(sessionStorage, reportUnitUri, format, range);
     }
-
 }
