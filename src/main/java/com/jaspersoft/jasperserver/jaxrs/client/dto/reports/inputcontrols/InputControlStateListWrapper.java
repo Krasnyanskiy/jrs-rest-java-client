@@ -36,10 +36,14 @@ public class InputControlStateListWrapper {
 
     private List<InputControlState> inputControlStateList;
 
-    public InputControlStateListWrapper(){}
-    public InputControlStateListWrapper(List<InputControlState> inputControlStateList){
+    public InputControlStateListWrapper() {
+
+    }
+
+    public InputControlStateListWrapper(List<InputControlState> inputControlStateList) {
         this.inputControlStateList = inputControlStateList;
     }
+
     @XmlElement(name = "inputControlState")
     public List<InputControlState> getInputControlStateList() {
         return inputControlStateList;
@@ -53,24 +57,21 @@ public class InputControlStateListWrapper {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         InputControlStateListWrapper that = (InputControlStateListWrapper) o;
-
-        if (inputControlStateList != null ? !inputControlStateList.equals(that.inputControlStateList) : that.inputControlStateList != null)
-            return false;
-
-        return true;
+        return !(inputControlStateList != null
+                ? !inputControlStateList.equals(that.inputControlStateList)
+                : that.inputControlStateList != null);
     }
 
     @Override
     public int hashCode() {
-        return inputControlStateList != null ? inputControlStateList.hashCode() : 0;
+        return inputControlStateList != null
+                ? inputControlStateList.hashCode()
+                : 0;
     }
 
     @Override
     public String toString() {
-        return "InputControlStateListWrapper{" +
-                "inputControlStateList=" + inputControlStateList +
-                '}';
+        return "InputControlStateListWrapper{" + "inputControlStateList=" + inputControlStateList + '}';
     }
 }

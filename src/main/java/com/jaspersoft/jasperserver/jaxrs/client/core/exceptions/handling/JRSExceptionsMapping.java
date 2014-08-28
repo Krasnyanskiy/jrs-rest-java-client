@@ -56,6 +56,7 @@ public final class JRSExceptionsMapping {
                 put(ExportFailedException.ERROR_CODE_EXPORT_FAILED, ExportFailedException.class);
             }};
 
-    private JRSExceptionsMapping(){}
+    private JRSExceptionsMapping(){
 
+    }
 }

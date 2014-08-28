@@ -4,10 +4,9 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.ErrorHa
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResultFactoryImpl;
 import com.jaspersoft.jasperserver.jaxrs.client.providers.CustomRepresentationTypeProvider;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.glassfish.jersey.client.JerseyWebTarget;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.internal.MultiPartWriter;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -19,6 +18,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import static org.mockito.Mockito.reset;
@@ -36,8 +36,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest}.
- */
+* Unit tests for {@link JerseyRequest}
+*/
 @PrepareForTest(JerseyRequest.class)
 public class JerseyRequestTest extends PowerMockTestCase {
 
@@ -89,7 +89,7 @@ public class JerseyRequestTest extends PowerMockTestCase {
     }
 
     /**
-     * The print under test is {@link com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest#buildRequest(com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage, Class, String[])}
+     * The print under test is {@link JerseyRequest#buildRequest(com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage, Class, String[])}
      */
     @Test(testName = "buildRequest")
     public void should_invoke_overloaded_buildRequest_method() {
@@ -107,7 +107,7 @@ public class JerseyRequestTest extends PowerMockTestCase {
     }
 
     /**
-     * The print under test is {@link com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest#buildRequest(com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage, Class, String[], com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.ErrorHandler)}
+     * The print under test is {@link JerseyRequest#buildRequest(com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage, Class, String[], com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.ErrorHandler)}
      */
     @Test(testName = "buildRequest")
     public void should_return_initialized_JerseyRequest_object() throws Exception {
@@ -296,7 +296,7 @@ public class JerseyRequestTest extends PowerMockTestCase {
     @Test(testName = "addParams")
     public void should_pass_proper_params_map_to_queryParam_method_and_return_RequestBuilder_object() {
 
-        MultivaluedMap<String, String> fakeParams = new MultivaluedMapImpl() {{
+        MultivaluedMap<String, String> fakeParams = new MultivaluedHashMap<String, String>() {{
             add("key", "value");
         }};
 
@@ -325,7 +325,7 @@ public class JerseyRequestTest extends PowerMockTestCase {
     @Test(testName = "addMatrixParams")
     public void should_add_proper_params_map_to_WebTarget_and_return_RequestBuilder_object() {
 
-        MultivaluedMap<String, String> fakeParams = new MultivaluedMapImpl() {{
+        MultivaluedMap<String, String> fakeParams = new MultivaluedHashMap<String, String>() {{
             add("key", "value");
         }};
 
@@ -384,7 +384,7 @@ public class JerseyRequestTest extends PowerMockTestCase {
 
         // Given
         JerseyRequest<Class> expected = new JerseyRequest<Class>(sessionStorage, Class.class);
-        MultivaluedMap<String, String> fakeParams = new MultivaluedMapImpl() {{
+        MultivaluedMap<String, String> fakeParams = new MultivaluedHashMap<String, String>() {{
             add("key", "value");
         }};
 

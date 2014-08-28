@@ -98,6 +98,7 @@ public class SessionStorage {
         rootTarget = client.target(configuration.getJasperReportsServerUrl());
         login();
         rootTarget.register(new SessionOutputFilter(sessionId));
+        //rootTarget.request(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
     }
 
     private void login() {
@@ -114,6 +115,11 @@ public class SessionStorage {
                 .request()
                 .cookie("JSESSIONID", securityAttributes.get("sessionId"))
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+        /**
+         * todo: fix this magic here
+         */
+        response.bufferEntity();
 
         if (response.getStatus() == ResponseStatus.FOUND) {
             this.sessionId = parseSessionId(response);

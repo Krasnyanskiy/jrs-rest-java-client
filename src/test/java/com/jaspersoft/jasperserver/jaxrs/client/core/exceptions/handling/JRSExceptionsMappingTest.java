@@ -1,6 +1,5 @@
 package com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling;
 
-import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.connection.ConnectionMediaType;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Constructor;
@@ -15,9 +14,6 @@ public class JRSExceptionsMappingTest {
         Constructor<JRSExceptionsMapping> constructor = JRSExceptionsMapping.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         JRSExceptionsMapping instance = constructor.newInstance();
-
         assertNotNull(instance);
-
     }
-
 }

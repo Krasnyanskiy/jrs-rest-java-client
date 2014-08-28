@@ -1,12 +1,15 @@
 package com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling;
 
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.JSClientWebException;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.NotAFileException;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ResourceNotFoundException;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.common.ErrorDescriptor;
+import org.apache.commons.logging.Log;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -17,18 +20,26 @@ import org.testng.annotations.Test;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests for {@link DefaultErrorHandler}
  */
 @PrepareForTest({DefaultErrorHandler.class, ErrorDescriptor.class})
 public class DefaultErrorHandlerTest extends PowerMockTestCase {
+
+    @Mock
+    private Log logMock;
 
     @Mock
     private Response responseMock;
@@ -162,8 +173,112 @@ public class DefaultErrorHandlerTest extends PowerMockTestCase {
         /* Than throw an exception */
     }
 
+    @Test
+    /**
+     * for {@link DefaultErrorHandler#handleStatusCodeError(Response, String)}
+     */
+    public void should_throw_proper_exception() {
+
+        /* Given */
+        Mockito.doReturn(404).when(responseMock).getStatus();
+        Mockito.doReturn(Response.Status.NOT_FOUND).when(responseMock).getStatusInfo();
+
+        /* When */
+        DefaultErrorHandler handlerSpy = Mockito.spy(new DefaultErrorHandler());
+
+        /* Than */
+        try {
+            handlerSpy.handleError(responseMock);
+        } catch (Exception e) {
+            //assertTrue(instanceOf(ResourceNotFoundException.class).matches(e));
+            Mockito.verify(responseMock, times(1)).getStatusInfo();
+            Mockito.verify(responseMock, times(1)).getStatus();
+        }
+    }
+
+    @Test
+    /**
+     * for {@link DefaultErrorHandler#handleStatusCodeError(Response, String)}
+     */
+    public void should_throw_proper_exception_type_instance_and_log_error() {
+
+        /* Given */
+        Mockito.doReturn(1000).when(responseMock).getStatus();
+        Mockito.doReturn(Response.Status.NOT_FOUND).when(responseMock).getStatusInfo();
+        Mockito.doNothing().when(logMock).error(anyString(), any(NullPointerException.class));
+
+        /* When */
+        DefaultErrorHandler handlerSpy = Mockito.spy(new DefaultErrorHandler());
+        Whitebox.setInternalState(handlerSpy, "log", logMock);
+
+        /* Than */
+        try {
+            handlerSpy.handleError(responseMock);
+        } catch (Exception e) {
+            Mockito.verify(responseMock, times(1)).getStatusInfo();
+            Mockito.verify(responseMock, times(1)).getStatus();
+            Mockito.verify(logMock, times(1)).error(anyString(), any(NullPointerException.class));
+        }
+    }
+
+    @Test
+    public void should_invoke_handleBodyError_method_and_throw_proper_exception() throws Exception {
+
+        /* Given */
+        DefaultErrorHandler handlerSpy = Mockito.spy(new DefaultErrorHandler());
+        Mockito.doReturn(descriptorMock).when(responseMock).readEntity(ErrorDescriptor.class);
+        Mockito.doReturn("application/json").when(responseMock).getHeaderString("Content-Type");
+        Mockito.doReturn("not.a.file").when(descriptorMock).getErrorCode();
+        Mockito.doReturn("someErrorMessage").when(descriptorMock).getMessage();
+
+        /* When */
+        try {
+            handlerSpy.handleError(responseMock);
+        } catch (Exception e) {
+
+            /* Than */
+            assertTrue(instanceOf(NotAFileException.class).matches(e));
+
+            Mockito.verify(responseMock, times(1)).readEntity(ErrorDescriptor.class);
+            Mockito.verify(responseMock, times(1)).getHeaderString("Content-Type");
+            Mockito.verify(descriptorMock, times(1)).getErrorCode();
+            Mockito.verify(descriptorMock, times(1)).getMessage();
+        }
+    }
+
+    @Test
+    public void should_invoke_handleBodyError_method_and_log_error_when_cannot_instantiate_exception_class() {
+
+        /* Given */
+        class CustomJSClientWebException extends JSClientWebException{
+            CustomJSClientWebException (Integer parameter){
+
+            }
+        }
+        JRSExceptionsMapping.ERROR_CODE_TO_TYPE_MAP.put("key", CustomJSClientWebException.class);
+
+        DefaultErrorHandler handlerSpy = Mockito.spy(new DefaultErrorHandler());
+        Whitebox.setInternalState(handlerSpy, "log", logMock);
+
+        Mockito.doNothing().when(logMock).warn(anyString(), any(NoSuchMethodException.class));
+        Mockito.doReturn(descriptorMock).when(responseMock).readEntity(ErrorDescriptor.class);
+        Mockito.doReturn("application/json").when(responseMock).getHeaderString("Content-Type");
+        Mockito.doReturn("key").when(descriptorMock).getErrorCode();
+        Mockito.doReturn("someErrorMessage").when(descriptorMock).getMessage();
+
+        /* When */
+        try {
+            handlerSpy.handleError(responseMock);
+        } catch (Exception e){
+
+            /* Than */
+            Mockito.verify(logMock, times(1)).warn(anyString(), any(NoSuchMethodException.class));
+        }
+
+    }
+
     @AfterMethod
     public void after() {
-        reset(responseMock, descriptorMock);
+        reset(responseMock, descriptorMock, logMock);
     }
 }

@@ -57,8 +57,7 @@ public class OperationResultTest {
 
         // Given
         when(responseMock.readEntity(TestableClientResource.class)).thenThrow(new ProcessingException("msg"));
-        WithEntityOperationResult operationResult =
-                new WithEntityOperationResult(responseMock, TestableClientResource.class);
+        WithEntityOperationResult operationResult = new WithEntityOperationResult(responseMock, TestableClientResource.class);
 
         // When
         Object retrieved = operationResult.getEntity();

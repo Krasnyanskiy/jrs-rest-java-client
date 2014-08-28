@@ -33,8 +33,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.apiadapters.permissions.SinglePermissionRecipientRequestAdapter}
- */
+* Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.apiadapters.permissions.SinglePermissionRecipientRequestAdapter}
+*/
 @PrepareForTest({SinglePermissionRecipientRequestAdapter.class, JerseyRequest.class})
 public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCase {
 

@@ -48,8 +48,8 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
- * Unit tests for {@link SingleOrganizationAdapter}
- */
+* Unit tests for {@link SingleOrganizationAdapter}
+*/
 @PrepareForTest({JerseyRequest.class, SingleOrganizationAdapter.class})
 public class SingleOrganizationAdapterTest extends PowerMockTestCase {
 

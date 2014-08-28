@@ -23,7 +23,6 @@ package com.jaspersoft.jasperserver.jaxrs.client.dto.jobs;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-//@XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "jobsummary")
 public class JobSummary {
 

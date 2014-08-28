@@ -14,8 +14,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 /**
- * Unit test for {@link com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.NullEntityOperationResult}
- */
+* Unit test for {@link NullEntityOperationResult}
+*/
 public class NullEntityOperationResultTest extends PowerMockTestCase {
 
     @Mock

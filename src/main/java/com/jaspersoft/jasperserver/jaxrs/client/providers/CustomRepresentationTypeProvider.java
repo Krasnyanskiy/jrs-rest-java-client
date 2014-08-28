@@ -33,7 +33,6 @@ import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-
 @Provider
 @Consumes({
         "application/collection+json",

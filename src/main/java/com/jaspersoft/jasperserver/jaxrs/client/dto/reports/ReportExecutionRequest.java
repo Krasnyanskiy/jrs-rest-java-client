@@ -234,7 +234,7 @@ public class ReportExecutionRequest {
          * snapshot exists for the report it will be used when running the
          * report.
          *
-         * <i>Default</i> - <b>false</b>
+         * <staticField>Default</staticField> - <b>false</b>
          */
         public Builder setFreshData(Boolean freshData) {
             request.setFreshData(freshData);
@@ -246,7 +246,7 @@ public class ReportExecutionRequest {
          * snapshot for the report should be written or overwritten with the
          * new data from this execution of the report.
          *
-         * <i>Default</i> - <b>false</b>
+         * <staticField>Default</staticField> - <b>false</b>
          */
         public Builder setSaveDataSnapshot(Boolean saveDataSnapshot) {
             request.setSaveDataSnapshot(saveDataSnapshot);
@@ -260,7 +260,7 @@ public class ReportExecutionRequest {
          * attachment when exporting to HTML. If false, the chart is generated
          * as a non-interactive image file (also as an attachment).
          *
-         * <i>Default</i> - <b>true</b>
+         * <staticField>Default</staticField> - <b>true</b>
          */
         public Builder setInteractive(Boolean interactive) {
             request.setInteractive(interactive);
@@ -271,7 +271,7 @@ public class ReportExecutionRequest {
          * When set to true, the report is generated as a single long page.
          * This can be used with HTML output to avoid pagination.
          *
-         * <i>Default</i> - <b>false</b>
+         * <staticField>Default</staticField> - <b>false</b>
          */
         public Builder setIgnorePagination(Boolean ignorePagination) {
             request.setIgnorePagination(ignorePagination);
@@ -287,7 +287,7 @@ public class ReportExecutionRequest {
          * client to wait as well, but allowing the client to download the report
          * immediately after the response.
          *
-         * <i>Default</i> - <b>false</b>
+         * <staticField>Default</staticField> - <b>false</b>
          */
         public Builder setAsync(Boolean async) {
             request.setAsync(async);

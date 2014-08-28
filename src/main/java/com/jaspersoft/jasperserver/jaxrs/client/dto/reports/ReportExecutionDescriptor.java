@@ -30,6 +30,7 @@ import java.util.List;
 
 //@XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "reportExecution")
+//@JsonIgnoreProperties(ignoreUnknown = true) // fixme: remove that black hack
 public class ReportExecutionDescriptor {
 
     private Integer currentPage;
@@ -39,7 +40,6 @@ public class ReportExecutionDescriptor {
     private Integer totalPages;
     private ErrorDescriptor errorDescriptor;
     private List<ExportDescriptor> exports;
-
 
     public ErrorDescriptor getErrorDescriptor() {
         return errorDescriptor;
