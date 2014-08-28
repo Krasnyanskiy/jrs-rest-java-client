@@ -48,10 +48,12 @@ public class OperationResultFactoryImpl implements OperationResultFactory {
     }
 
     private boolean isClientResource(Class<?> clazz) {
-        return clazz != Object.class && clazz.isAssignableFrom(ClientResource.class);
+        boolean b = clazz != Object.class && clazz.isAssignableFrom(ClientResource.class);
+        return b;
     }
 
     private Class<? extends ClientResource> getSpecificResourceType(Response response) {
-        return ResourcesTypeResolverUtil.getClassForMime(response.getHeaderString("Content-Type"));
+        Class<? extends ClientResource> res = ResourcesTypeResolverUtil.getClassForMime(response.getHeaderString("Content-Type"));
+        return res; 
     }
 }

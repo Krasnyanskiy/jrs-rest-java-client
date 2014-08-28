@@ -125,7 +125,7 @@ public class SessionStorageTest extends PowerMockTestCase {
 
 
         PowerMockito.suppress(method(SSLContext.class, "init", KeyManager[].class, TrustManager[].class, SecureRandom.class));
-        //PowerMockito.suppress(method(SessionStorage.class, "login"));
+        //PowerMockito.suppress(increment(SessionStorage.class, "login"));
 
         PowerMockito.when(builderMock.sslContext(ctxMock)).thenReturn(builderMock);
         PowerMockito.when(builderMock.hostnameVerifier(any(HostnameVerifier.class))).thenReturn(builderMock);

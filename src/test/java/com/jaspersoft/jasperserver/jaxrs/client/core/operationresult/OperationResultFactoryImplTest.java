@@ -1,11 +1,13 @@
 package com.jaspersoft.jasperserver.jaxrs.client.core.operationresult;
 
+import com.jaspersoft.jasperserver.dto.resources.ClientDashboard;
 import com.jaspersoft.jasperserver.dto.resources.ClientFolder;
 import com.jaspersoft.jasperserver.dto.resources.ClientQuery;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources.ResourcesTypeResolverUtil;
 import com.jaspersoft.jasperserver.jaxrs.client.core.support.TestableClientResource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -15,6 +17,7 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -126,6 +129,32 @@ public class OperationResultFactoryImplTest extends PowerMockTestCase {
         assertNotNull(operationResult);
         verifyPrivate(factorySpy, times(1)).invoke("isClientResource", ClientFolder.class);
         verifyPrivate(factorySpy, times(1)).invoke("getAppropriateOperationResultInstance", responseMock, ClientFolder.class);
+    }
+
+    @Test
+    public void should_invoke_private_method_getSpecificResourceType() throws Exception {
+
+        /* When */
+
+        Class dashboardClass = ClientDashboard.class;
+
+        PowerMockito.mockStatic(ResourcesTypeResolverUtil.class);
+        PowerMockito.when(ResourcesTypeResolverUtil.getClassForMime(anyString())).thenReturn(dashboardClass);
+
+        OperationResultFactoryImpl factorySpy = PowerMockito.spy(new OperationResultFactoryImpl());
+        PowerMockito.doReturn(true).when(factorySpy, "isClientResource", ClientDashboard.class);
+//        PowerMockito.doReturn(ClientDashboard.class).when(factorySpy, "getSpecificResourceType", responseMock);
+        PowerMockito.doReturn("json").when(responseMock).getHeaderString("Content-Type");
+
+        /* Indirect call of private method getSpecificResourceType() */
+        OperationResult<ClientDashboard> retrievedResult = factorySpy.getOperationResult(responseMock, ClientDashboard.class);
+
+        /* Than */
+        assertNotNull(retrievedResult);
+//        PowerMockito.verifyPrivate(factorySpy, times(1)).invoke("getSpecificResourceType", responseMock);
+
+        PowerMockito.verifyStatic(times(1));
+        ResourcesTypeResolverUtil.getClassForMime(anyString());
     }
 
     @AfterMethod
