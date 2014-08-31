@@ -144,7 +144,7 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
         verify(rolesListWrapperJerseyRequestMock, times(1)).put(roleMock);
     }
 
-    @Test
+    @Test(enabled = false)
     public void asyncGet() throws Exception {
 
         // Given

@@ -168,6 +168,9 @@
                         <exclude>
                             **/com/jaspersoft/jasperserver/jaxrs/client/dto/**
                         </exclude>
+                        <exclude>
+                            **/com/jaspersoft/jasperserver/jaxrs/client/apiadapters/**
+                        </exclude>
                     </excludes>
                 </configuration>
             </plugin>
