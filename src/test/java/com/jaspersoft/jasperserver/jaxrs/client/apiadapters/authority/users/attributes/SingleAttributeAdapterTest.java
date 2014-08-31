@@ -6,6 +6,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -20,6 +21,8 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.MultivaluedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -62,7 +65,7 @@ public class SingleAttributeAdapterTest extends PowerMockTestCase {
     private RequestBuilder<ClientUserAttribute> requestBuilderMock;
 
     @Mock
-    private ClientUserAttribute userAttribute;
+    private ClientUserAttribute userAttributeMock;
 
     @Mock
     private OperationResult operationResultMock2;
@@ -168,11 +171,11 @@ public class SingleAttributeAdapterTest extends PowerMockTestCase {
         SingleAttributeAdapter adapterSpy = PowerMockito.spy(new SingleAttributeAdapter(sessionStorageMock, builderMock));
 
         doReturn(requestMock).when(adapterSpy, "request");
-        doReturn(operationResultMock).when(requestMock).put(userAttribute);
+        doReturn(operationResultMock).when(requestMock).put(userAttributeMock);
         doReturn(resultMock).when(callbackMock).execute(operationResultMock);
 
         // When
-        adapterSpy.asyncUpdateOrCreate(userAttribute, callbackMock, "State"); // State = attribute name
+        adapterSpy.asyncUpdateOrCreate(userAttributeMock, callbackMock, "State"); // State = attribute name
 
         // Than
         verifyPrivate(adapterSpy, times(1)).invoke("request");
@@ -216,15 +219,15 @@ public class SingleAttributeAdapterTest extends PowerMockTestCase {
         SingleAttributeAdapter adapterSpy = PowerMockito.spy(new SingleAttributeAdapter(sessionStorageMock, new StringBuilder("/uri")));
 
         doReturn(requestMock).when(adapterSpy, "request");
-        doReturn(operationResultMock2).when(requestMock).put(userAttribute);
-        doReturn("State").when(userAttribute).getName();
+        doReturn(operationResultMock2).when(requestMock).put(userAttributeMock);
+        doReturn("State").when(userAttributeMock).getName();
 
         // When
-        OperationResult retrieved = adapterSpy.updateOrCreate(userAttribute);
+        OperationResult retrieved = adapterSpy.updateOrCreate(userAttributeMock);
 
         // Than
         verifyPrivate(adapterSpy, times(1)).invoke("request");
-        verify(requestMock, times(1)).put(userAttribute);
+        verify(requestMock, times(1)).put(userAttributeMock);
         Assert.assertEquals(Whitebox.getInternalState(adapterSpy, "attributeName"), "State");
         assertSame(operationResultMock2, retrieved);
     }
@@ -237,7 +240,7 @@ public class SingleAttributeAdapterTest extends PowerMockTestCase {
         SingleAttributeAdapter adapterSpy = PowerMockito.spy(new SingleAttributeAdapter(sessionStorageMock, new StringBuilder("/uri")));
         doReturn(requestMock).when(adapterSpy, "request");
         doReturn(operationResultMock).when(requestMock).get();
-        doReturn("State").when(userAttribute).getName();
+        doReturn("State").when(userAttributeMock).getName();
 
         // When
         OperationResult retrieved = adapterSpy.get("State");
@@ -249,9 +252,90 @@ public class SingleAttributeAdapterTest extends PowerMockTestCase {
         assertSame(operationResultMock, retrieved);
     }
 
+    @Test
+    /**
+     * for {@link SingleAttributeAdapter#asyncUpdateOrCreate(ClientUserAttribute, Callback, String)}
+     */
+    public void should_run_logic_of_update_method_asynchronously() throws Exception {
+
+        /* Given */
+        final String attributeName = "someAttributeName";
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ClientUserAttribute.class),
+                eq(new String[]{"/uri", "/attributes", attributeName}),
+                any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        SingleAttributeAdapter adapterSpy = PowerMockito.spy(new SingleAttributeAdapter(sessionStorageMock,
+                new StringBuilder("/uri")));
+        PowerMockito.doReturn(operationResultMock).when(requestMock).put(userAttributeMock);
+
+        final Callback<OperationResult<ClientUserAttribute>, Void> callbackSpy =
+                PowerMockito.spy(new Callback<OperationResult<ClientUserAttribute>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<ClientUserAttribute> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
+
+        PowerMockito.doReturn(null).when(callbackSpy).execute(operationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncUpdateOrCreate(userAttributeMock, callbackSpy, attributeName);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+        /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callbackSpy, times(1)).execute(operationResultMock);
+        verify(requestMock, times(1)).put(userAttributeMock);
+    }
+
+    @Test
+    /**
+     * for {@link SingleAttributeAdapter#delete(String)} and for {@link JerseyRequest#buildRequest()}
+     */
+    public void should_invoke_private_method_and_delete_attribute() {
+
+        /* Given */
+        final String attributeName = "someAttributeName";
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ClientUserAttribute.class),
+                eq(new String[]{"/uri", "/attributes", attributeName}),
+                any(DefaultErrorHandler.class))).thenReturn(requestMock);
+
+        SingleAttributeAdapter adapterSpy = PowerMockito.spy(new SingleAttributeAdapter(sessionStorageMock,
+                new StringBuilder("/uri")));
+
+        /* When */
+        adapterSpy.delete(attributeName);
+
+        /* Than */
+        PowerMockito.verifyStatic(times(1));
+        JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ClientUserAttribute.class),
+                eq(new String[]{"/uri", "/attributes", attributeName}),
+                any(DefaultErrorHandler.class));
+    }
+
+
     @AfterMethod
     public void after() {
         reset(sessionStorageMock, requestMock, callbackMock, resultMock, operationResultMock,
-                requestBuilderMock, userAttribute, operationResultMock2);
+                requestBuilderMock, userAttributeMock, operationResultMock2);
     }
 }

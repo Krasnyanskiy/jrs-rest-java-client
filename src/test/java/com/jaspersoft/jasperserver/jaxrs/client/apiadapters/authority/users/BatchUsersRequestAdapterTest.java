@@ -4,6 +4,7 @@ import com.jaspersoft.jasperserver.dto.authority.UsersListWrapper;
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
 import com.jaspersoft.jasperserver.jaxrs.client.core.operationresult.OperationResult;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -31,6 +33,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
@@ -170,6 +173,54 @@ public class BatchUsersRequestAdapterTest extends PowerMockTestCase {
         Mockito.verify(requestMock, times(1)).addParams(params);
         Mockito.verify(requestMock, times(1)).get();
         Mockito.verifyNoMoreInteractions(requestMock);
+    }
+
+    @Test
+    public void should_retrieve_wrapped_UsersListWrapper_asynchronously() throws Exception {
+
+        /* Given */
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+        final String uri = "/organizations/MyCoolOrg/users";
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(UsersListWrapper.class),
+                eq(new String[]{uri}),
+                any(DefaultErrorHandler.class))).thenReturn(requestMock);
+
+        BatchUsersRequestAdapter adapterSpy = PowerMockito.spy(new BatchUsersRequestAdapter(sessionStorageMock, "MyCoolOrg"));
+        PowerMockito.doReturn(operationResultMock).when(requestMock).get();
+
+        final Callback<OperationResult<UsersListWrapper>, Void> callbackSpy =
+                PowerMockito.spy(new Callback<OperationResult<UsersListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<UsersListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
+
+        PowerMockito.doReturn(null).when(callbackSpy).execute(operationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncGet(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+        /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callbackSpy, times(1)).execute(operationResultMock);
+        verify(requestMock, times(1)).get();
+        Mockito.verify(requestMock, times(1)).addParams(any(MultivaluedHashMap.class));
     }
 
     @AfterMethod

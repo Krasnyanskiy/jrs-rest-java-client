@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EncryptionUtils {
-
     private static final Log log = LogFactory.getLog(EncryptionUtils.class);
 
     public static String encryptPassword(String plainPassword, String n, String e) {
@@ -69,9 +68,8 @@ public class EncryptionUtils {
     }
 
     private static String byteArrayToHexString(byte[] byteArr) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < byteArr.length; i++) {
-            byte b = byteArr[i];
+        StringBuilder sb = new StringBuilder();
+        for (byte b : byteArr) {
             int high = (b & 0xF0) >> 4;
             int low = b & 0x0F;
             sb.append(Character.forDigit(high, 16));
@@ -86,7 +84,6 @@ public class EncryptionUtils {
         enc.init(Cipher.ENCRYPT_MODE, publicKey);
         String utfPass = URLEncoder.encode(pwd, CharEncoding.UTF_8);
         encryptedUtfPass = enc.doFinal(utfPass.getBytes());
-
         return byteArrayToHexString(encryptedUtfPass);
     }
 

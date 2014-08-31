@@ -89,7 +89,9 @@ public class SingleOrganizationAdapterTest extends PowerMockTestCase {
         SingleOrganizationAdapter adapter = spy(new SingleOrganizationAdapter(sessionStorageMock, "MyCoolOrg"));
         String organizationId = (String) getInternalState(adapter, "organizationId");
 
-        when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientTenant.class),
+        when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(ClientTenant.class),
                 eq(new String[]{"/organizations", organizationId}),
                 any(DefaultErrorHandler.class))).thenReturn(requestMock);
 

@@ -32,7 +32,7 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
     }
 
     /**
-     * Use this constructor only of you don't need to use v2/attributes Service in your request.
+     * Use this constructor only if you don't need to use v2/attributes Service in your request.
      */
     public SingleUserRequestAdapter(SessionStorage sessionStorage, String organizationId) {
         super(sessionStorage);
@@ -49,7 +49,6 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
      */
     public SingleUserRequestAdapter(String userId, String organizationId, SessionStorage sessionStorage) {
         super(sessionStorage);
-
         if (organizationId != null && !organizationId.equals("") && userId != null && !userId.equals("")) {
             uri.append("/organizations/").append(organizationId).append("/users/").append(userId);
         } else if (organizationId == null && userId != null && !userId.equals("")) {
@@ -212,6 +211,7 @@ public class SingleUserRequestAdapter extends AbstractAdapter {
     }
 
     private JerseyRequest<ClientUser> request() {
+        //System.out.println(uri.toString());
         return JerseyRequest.buildRequest(sessionStorage, ClientUser.class, new String[]{uri.toString()}, new DefaultErrorHandler());
     }
 }

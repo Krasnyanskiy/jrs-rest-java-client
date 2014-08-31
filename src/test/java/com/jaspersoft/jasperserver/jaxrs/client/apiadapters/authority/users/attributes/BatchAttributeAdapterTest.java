@@ -6,6 +6,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.User
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
 import com.jaspersoft.jasperserver.jaxrs.client.core.RequestBuilder;
+import com.jaspersoft.jasperserver.jaxrs.client.core.RequestExecution;
 import com.jaspersoft.jasperserver.jaxrs.client.core.SessionStorage;
 import com.jaspersoft.jasperserver.jaxrs.client.core.ThreadPoolUtil;
 import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
@@ -23,6 +24,7 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -35,6 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
@@ -219,9 +222,8 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         verify(ageAttribute, times(1)).setValue(anyString());
     }
 
-    @Test
+    @Test(enabled = false)
     public void asyncCreateOrUpdate() throws Exception {
-
 
         // Given
         StringBuilder builderMock = PowerMockito.mock(StringBuilder.class);
@@ -241,7 +243,6 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         Mockito.verify(callbackMock, times(1)).execute(operationResultMock);
 
     }
-
 
     @Test(enabled = false)
     public void asyncDelete() throws Exception {
@@ -264,6 +265,7 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
 
     @Test(testName = "private")
     public void request() throws Exception {
+
         /* Given */
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
@@ -277,6 +279,94 @@ public class BatchAttributeAdapterTest extends PowerMockTestCase {
         assertNotNull(adapterSpy);
         PowerMockito.verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class));
+    }
+
+    @Test
+    /**
+     * for {@link BatchAttributeAdapter#asyncDelete(Callback)}
+     */
+    public void should_delete_user_attributes_asynchronously() throws InterruptedException {
+
+        /* Given */
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.doReturn(operationResultMock).when(requestMock).delete();
+
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, new StringBuilder("uri")));
+        final Callback<OperationResult<UserAttributesListWrapper>, Void> callbackSpy =
+                PowerMockito.spy(new Callback<OperationResult<UserAttributesListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<UserAttributesListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
+
+        PowerMockito.doReturn(null).when(callbackSpy).execute(operationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncDelete(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+         /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callbackSpy, times(1)).execute(operationResultMock);
+        verify(requestMock, times(1)).delete();
+    }
+
+    @Test
+    /**
+     * for {@link BatchAttributeAdapter#asyncCreateOrUpdate(UserAttributesListWrapper, Callback)}
+     */
+    public void should_update_user_attributes_asynchronously() throws InterruptedException {
+
+        /* Given */
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(UserAttributesListWrapper.class), eq(new String[]{"uri", "/attributes"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.doReturn(operationResultMock).when(requestMock).put(userAttributesListWrapperMock);
+
+        BatchAttributeAdapter adapterSpy = PowerMockito.spy(new BatchAttributeAdapter(sessionStorageMock, new StringBuilder("uri")));
+        final Callback<OperationResult<UserAttributesListWrapper>, Void> callbackSpy =
+                PowerMockito.spy(new Callback<OperationResult<UserAttributesListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<UserAttributesListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
+
+        PowerMockito.doReturn(null).when(callbackSpy).execute(operationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(userAttributesListWrapperMock, callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+         /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callbackSpy, times(1)).execute(operationResultMock);
+        verify(requestMock, times(1)).put(userAttributesListWrapperMock);
     }
 
     @AfterMethod
