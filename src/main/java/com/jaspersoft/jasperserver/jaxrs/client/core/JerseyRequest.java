@@ -92,17 +92,12 @@ public class JerseyRequest<ResponseType> implements RequestBuilder<ResponseType>
             this.acceptType = MediaType.APPLICATION_XML;
         }
 
-
-//        JacksonJsonProvider jacksonProvider = new JacksonJaxbJsonProvider().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-//        ObjectMapper mapper = jacksonProvider.locateMapper(Object.class, MediaType.APPLICATION_JSON_TYPE);
-
         this.headers = new MultivaluedHashMap<String, String>();
         this.usersWebTarget = sessionStorage
                 .getRootTarget()
                 .path("/rest_v2")
                 .register(CustomRepresentationTypeProvider.class)
                 .register(JacksonFeature.class)
-//                .register(mapper)
                 .register(MultiPartWriter.class);
     }
 
@@ -236,7 +231,7 @@ public class JerseyRequest<ResponseType> implements RequestBuilder<ResponseType>
     }
 
     /**
-     * getters for Unit Tests.
+     * Getters for Unit Tests.
      */
     public String getContentType() {
         return contentType;
