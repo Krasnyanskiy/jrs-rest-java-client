@@ -13,7 +13,6 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.jobs.jaxb.wrappers.JobSummar
 import com.jaspersoft.jasperserver.jaxrs.client.dto.jobs.reportjobmodel.ReportJobModel;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -37,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -62,11 +62,11 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({JerseyRequest.class, JAXBContext.class, ObjectMapper.class, BatchJobsOperationsAdapter.class})
 public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
-    @Captor
-    private ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
+//    @Captor
+//    private ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
 
-    @Captor
-    private ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+//    @Captor
+//    private ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 
     @Mock
     private SessionStorage sessionStorageMock;
@@ -455,6 +455,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_send_JobIdListWrapper_on_server_asynchronously() {
 
         /* Given */
+        ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/pause"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
@@ -500,6 +501,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_send_resume_message_on_server_asynchronously() {
 
         /* Given */
+        ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/resume"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
@@ -545,6 +547,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_force_server_to_restart_jobs_asynchronously() {
 
         /* Given */
+        ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/restart"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
@@ -587,6 +590,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_7() {
 
         /* Given */
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
@@ -632,6 +636,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_update() {
 
         /* Given */
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
         PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(argumentCaptor.capture());
@@ -667,9 +672,10 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_9() throws JAXBException {
 
         /* Given */
+//        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.mockStatic(JerseyRequest.class);
         PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(argumentCaptor.capture());
+        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(anyObject()/*argumentCaptor.capture()*/);
         PowerMockito.doReturn(configurationMock).when(sessionStorageMock).getConfiguration();
         PowerMockito.doReturn(MimeType.XML).when(configurationMock).getContentMimeType();
 
