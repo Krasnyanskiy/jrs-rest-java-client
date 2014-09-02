@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.dto.common;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -30,41 +29,42 @@ import java.text.MessageFormat;
  */
 @XmlRootElement(name = "error")
 public class ValidationError {
-	
-	private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 1L;
     private String errorCode;
-	private Object[] arguments;
-	private String defaultMessage;
-	private String field;
+    private Object[] arguments;
+    private String defaultMessage;
+    private String field;
 
-    public ValidationError(){}
+    public ValidationError() {
+    }
 
-	public ValidationError(String errorCode, Object[] arguments, String defaultMessage, String field) {
-		this.errorCode = errorCode;
-		this.arguments = arguments;
-		this.defaultMessage = defaultMessage;
-		this.field = field;
-	}
-	
-	public ValidationError(String errorCode, Object[] arguments, String defaultMessage) {
-		this(errorCode, arguments, defaultMessage, null);
-	}
+    public ValidationError(String errorCode, Object[] arguments, String defaultMessage, String field) {
+        this.errorCode = errorCode;
+        this.arguments = arguments;
+        this.defaultMessage = defaultMessage;
+        this.field = field;
+    }
 
-	public String getErrorCode() {
-		return errorCode;
-	}
+    public ValidationError(String errorCode, Object[] arguments, String defaultMessage) {
+        this(errorCode, arguments, defaultMessage, null);
+    }
 
-	public Object[] getErrorArguments() {
-		return arguments;
-	}
+    public String getErrorCode() {
+        return errorCode;
+    }
 
-	public String getDefaultMessage() {
-		return defaultMessage;
-	}
+    public Object[] getErrorArguments() {
+        return arguments;
+    }
 
-	public String getField() {
-		return field;
-	}
+    public String getDefaultMessage() {
+        return defaultMessage;
+    }
+
+    public String getField() {
+        return field;
+    }
 
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
@@ -74,7 +74,7 @@ public class ValidationError {
         this.arguments = arguments;
     }
 
-    public void setErrorArguments(Object... arguments){
+    public void setErrorArguments(Object... arguments) {
         this.setArguments(arguments);
     }
 
@@ -87,15 +87,15 @@ public class ValidationError {
     }
 
 
-	public String toString() {
-		if (getDefaultMessage() != null) {
-			return MessageFormat.format(getDefaultMessage(), getErrorArguments());
-		}
-		
-		if (getField() == null) {
-			return getErrorCode();
-		}
-		
-		return getErrorCode() + "." + getField();
-	}
+    public String toString() {
+        if (getDefaultMessage() != null) {
+            return MessageFormat.format(getDefaultMessage(), getErrorArguments());
+        }
+
+        if (getField() == null) {
+            return getErrorCode();
+        }
+
+        return getErrorCode() + "." + getField();
+    }
 }

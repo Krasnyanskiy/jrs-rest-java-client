@@ -125,7 +125,7 @@ public class PermissionResourceRequestAdapterTest extends PowerMockTestCase {
         verifyStatic(times(1));
         JerseyRequest.buildRequest(sessionStorageMock, RepositoryPermissionListWrapper.class, new String[]{"/permissions", fakeUri});
 
-        verify(requestMock, times(1)).setContentType("application/collection+JSON");
+        verify(requestMock, times(1)).setContentType("application/collection+json");
         verify(requestMock, times(1)).put(wrapperMock);
         verifyNoMoreInteractions(requestMock);
 

@@ -1,5 +1,6 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.organizations;
 
+import com.jaspersoft.jasperserver.dto.authority.ClientTenant;
 import com.jaspersoft.jasperserver.dto.authority.OrganizationsListWrapper;
 import com.jaspersoft.jasperserver.jaxrs.client.core.Callback;
 import com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest;
@@ -25,7 +26,9 @@ import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildR
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.testng.Assert.assertSame;
 
 /**
  * Unit tests for {@link BatchOrganizationsAdapter}
@@ -38,12 +41,19 @@ public class BatchOrganizationsAdapterTest extends PowerMockTestCase {
 
     @Mock
     private JerseyRequest<OrganizationsListWrapper> requestMock;
-
     @Mock
     private OperationResult<OrganizationsListWrapper> resultMock;
 
     @Mock
+    private JerseyRequest<ClientTenant> tenantJerseyRequestMock;
+    @Mock
+    private OperationResult<ClientTenant> tenantOperationResultMock;
+
+    @Mock
     private MultivaluedHashMap<String, String> paramsMock;
+
+    @Mock
+    public ClientTenant tenantMock;
 
     @BeforeMethod
     public void before() {
@@ -107,13 +117,86 @@ public class BatchOrganizationsAdapterTest extends PowerMockTestCase {
         MultivaluedHashMap<String, String> params = (MultivaluedHashMap<String, String>) Whitebox.getInternalState(adapterSpy, "params");
 
         /* Than */
-        Assert.assertSame(retrieved, adapterSpy);
+        assertSame(retrieved, adapterSpy);
         Assert.assertTrue(params.size() == 1);
         Assert.assertEquals(params.getFirst(OrganizationParameter.CREATE_DEFAULT_USERS.getParamName()), "true");
     }
 
+    @Test
+    public void should_() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ClientTenant.class), eq(new String[]{"/organizations"}), any(DefaultErrorHandler.class))).thenReturn(tenantJerseyRequestMock);
+        PowerMockito.doReturn(tenantOperationResultMock).when(tenantJerseyRequestMock).post(tenantMock);
+        BatchOrganizationsAdapter adapterSpy = PowerMockito.spy(new BatchOrganizationsAdapter(sessionStorageMock));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<ClientTenant>, Void> callback = PowerMockito.spy(new Callback<OperationResult<ClientTenant>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientTenant> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(tenantOperationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncCreate(tenantMock, callback);
+
+        /* Wait */
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Mockito.verify(tenantJerseyRequestMock).post(tenantMock);
+        Mockito.verify(callback).execute(tenantOperationResultMock);
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void should_0() {
+
+        //create
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(ClientTenant.class), eq(new String[]{"/organizations"}), any(DefaultErrorHandler.class))).thenReturn(tenantJerseyRequestMock);
+        PowerMockito.doReturn(tenantOperationResultMock).when(tenantJerseyRequestMock).post(tenantMock);
+        BatchOrganizationsAdapter adapterSpy = PowerMockito.spy(new BatchOrganizationsAdapter(sessionStorageMock));
+
+        OperationResult<ClientTenant> retrievedResult = adapterSpy.create(tenantMock);
+
+        assertSame(retrievedResult, tenantOperationResultMock);
+        Mockito.verify(tenantJerseyRequestMock, times(1)).post(tenantMock);
+        Mockito.verify(tenantJerseyRequestMock, times(1)).addParams(any(MultivaluedHashMap.class));
+    }
+
+    @Test
+    public void should_1() {
+
+        //create
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(OrganizationsListWrapper.class), eq(new String[]{"/organizations"}), any(DefaultErrorHandler.class))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).get();
+        BatchOrganizationsAdapter adapterSpy = PowerMockito.spy(new BatchOrganizationsAdapter(sessionStorageMock));
+
+        OperationResult<OrganizationsListWrapper> retrievedResult = adapterSpy.get();
+
+        assertSame(retrievedResult, resultMock);
+        Mockito.verify(requestMock, times(1)).get();
+        Mockito.verify(requestMock, times(1)).addParams(any(MultivaluedHashMap.class));
+    }
+
     @AfterMethod
     public void after() {
-        reset(sessionStorageMock, requestMock, resultMock, paramsMock);
+        reset(sessionStorageMock, tenantJerseyRequestMock, tenantOperationResultMock, paramsMock,tenantMock);
     }
 }

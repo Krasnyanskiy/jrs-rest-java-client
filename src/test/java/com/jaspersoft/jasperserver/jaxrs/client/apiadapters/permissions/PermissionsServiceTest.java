@@ -139,7 +139,7 @@ public class PermissionsServiceTest extends PowerMockTestCase {
         // Than
         verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/permissions"}));
-        verify(requestMock, times(1)).setContentType("application/collection+JSON");
+        verify(requestMock, times(1)).setContentType("application/collection+json");
         verify(requestMock, times(1)).post(wrapperMock);
         assertSame(retrieved, resultMock);
     }
@@ -221,7 +221,7 @@ public class PermissionsServiceTest extends PowerMockTestCase {
         }
 
         /* Than */
-        inOrder.verify(requestMock, times(1)).setContentType("application/collection+XML");
+        inOrder.verify(requestMock, times(1)).setContentType("application/collection+xml");
         inOrder.verify(requestMock, times(1)).post(permissionListWrapperMock);
 
         verify(callback).execute(resultMock);

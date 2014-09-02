@@ -272,12 +272,6 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     }
 
     @Test
-    public void getIds() {
-        BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
-        // TODO...
-    }
-
-    @Test
     public void should_pause_all_jobs_with_corresponding_ids() throws Exception {
 
         // Given

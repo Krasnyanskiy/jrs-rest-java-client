@@ -68,7 +68,7 @@ public class SingleJobOperationsAdapter extends AbstractAdapter {
     }
 
     public <R> RequestExecution asyncState(final Callback<OperationResult<JobState>, R> callback) {
-        final JerseyRequest<JobState> request = buildRequest(sessionStorage, JobState.class, new String[]{"/jobs", jobId, "/state"});
+            final JerseyRequest<JobState> request = buildRequest(sessionStorage, JobState.class, new String[]{"/jobs", jobId, "/state"});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {

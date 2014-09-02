@@ -20,7 +20,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
@@ -232,6 +231,47 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
                 any(DefaultErrorHandler.class));
         PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(ClientRole.class));
         Assert.assertNotNull(retrieved);
+    }
+
+    @Test
+    public void should_1() throws Exception {
+
+        /* Given */
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(sessionStorageMock), eq(ClientRole.class),eq(new String[]{"/organizations/orgId/roles/roleName"}), any(DefaultErrorHandler.class))).thenReturn(jerseyRequestMock);
+
+        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
+
+        final Callback<OperationResult<ClientRole>, Void> callback = spy(new Callback<OperationResult<ClientRole>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientRole> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(expectedOpResultMock).when(jerseyRequestMock).get();
+        PowerMockito.doReturn(null).when(callback).execute(expectedOpResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncGet(callback);
+
+        /* Wait */
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(expectedOpResultMock);
+        verify(jerseyRequestMock, times(1)).get();
     }
 
     @AfterMethod

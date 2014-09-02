@@ -111,7 +111,7 @@ public class SingleJobOperationsAdapterTest extends PowerMockTestCase {
         verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Job.class), eq(new String[]{"/jobs", expectedJobId}));
         verify(jobRequestMock, times(1)).get();
-        verify(jobRequestMock, times(1)).setAccept("application/job+XML");
+        verify(jobRequestMock, times(1)).setAccept("application/job+xml");
 
         assertNotNull(retrieved);
         assertSame(retrieved, jobOperationResultMock);
@@ -183,8 +183,8 @@ public class SingleJobOperationsAdapterTest extends PowerMockTestCase {
         verifyStatic(times(1));
         JerseyRequest.buildRequest(eq(sessionStorageMock), eq(Job.class), eq(new String[]{"/jobs", expectedJobId}), any(JobValidationErrorHandler.class));
         verify(jobRequestMock, times(1)).post(jobMock);
-        verify(jobRequestMock, times(1)).setContentType("application/job+XML");
-        verify(jobRequestMock, times(1)).setAccept("application/job+XML");
+        verify(jobRequestMock, times(1)).setContentType("application/job+xml");
+        verify(jobRequestMock, times(1)).setAccept("application/job+xml");
 
         assertNotNull(retrieved);
         assertSame(retrieved, jobOperationResultMock);
@@ -332,8 +332,8 @@ public class SingleJobOperationsAdapterTest extends PowerMockTestCase {
         Assert.assertNotSame(currentThreadId, newThreadId.get());
         Mockito.verify(callback, times(1)).execute(jobOperationResultMock);
 
-        inOrder.verify(jobRequestMock).setContentType("application/job+XML");
-        inOrder.verify(jobRequestMock).setAccept("application/job+XML");
+        inOrder.verify(jobRequestMock).setContentType("application/job+xml");
+        inOrder.verify(jobRequestMock).setAccept("application/job+xml");
         inOrder.verify(jobRequestMock, times(1)).post(jobMock);
     }
 
@@ -383,7 +383,7 @@ public class SingleJobOperationsAdapterTest extends PowerMockTestCase {
         Assert.assertNotSame(currentThreadId, newThreadId.get());
         Mockito.verify(callback, times(1)).execute(jobOperationResultMock);
 
-        inOrder.verify(jobRequestMock).setAccept("application/job+JSON");
+        inOrder.verify(jobRequestMock).setAccept("application/job+json");
         inOrder.verify(jobRequestMock, times(1)).get();
     }
 
@@ -436,6 +436,93 @@ public class SingleJobOperationsAdapterTest extends PowerMockTestCase {
 
         inOrder.verify(jobRequestMock).setAccept("application/job+json");
         inOrder.verify(jobRequestMock, times(1)).get();
+    }
+
+
+    @Test
+    public void should_1() throws InterruptedException {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(Object.class),
+                eq(new String[]{"/jobs", "123435326"})))
+                .thenReturn(objectJerseyRequestMock);
+
+        SingleJobOperationsAdapter adapterSpy = PowerMockito.spy(new SingleJobOperationsAdapter(sessionStorageMock, "123435326"));
+        Callback<OperationResult, Void> callback = PowerMockito.spy(new Callback<OperationResult, Void>() {
+            public Void execute(OperationResult data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(operationResultMock).when(objectJerseyRequestMock).delete();
+        PowerMockito.doReturn(null).when(callback).execute(operationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+        Mockito.verify(objectJerseyRequestMock, times(1)).delete();
+        Mockito.verify(callback, times(1)).execute(operationResultMock);
+    }
+
+    @Test
+    public void should_3() throws InterruptedException {
+
+        // Given
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(
+                eq(sessionStorageMock),
+                eq(JobState.class),
+                eq(new String[]{"/jobs", "123435326", "/state"})))
+                .thenReturn(jobStateJerseyRequestMock);
+
+        SingleJobOperationsAdapter adapterSpy = PowerMockito.spy(new SingleJobOperationsAdapter(sessionStorageMock, "123435326"));
+        Callback<OperationResult<JobState>, Void> callback = PowerMockito.spy(new Callback<OperationResult<JobState>, Void>() {
+            public Void execute(OperationResult<JobState> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(jobStateOperationResultMock).when(jobStateJerseyRequestMock).get();
+        PowerMockito.doReturn(null).when(callback).execute(jobStateOperationResultMock);
+
+        // When
+        RequestExecution retrieved = adapterSpy.asyncState(callback);
+
+        // Wait
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        // Than
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+        Mockito.verify(jobStateJerseyRequestMock, times(1)).get();
+        Mockito.verify(callback, times(1)).execute(jobStateOperationResultMock);
     }
 
     @AfterMethod

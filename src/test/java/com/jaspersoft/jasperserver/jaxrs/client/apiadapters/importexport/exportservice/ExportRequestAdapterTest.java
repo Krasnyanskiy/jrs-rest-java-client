@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
@@ -73,6 +74,9 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
     private Callback<OperationResult<StateDto>, Object> operationResultObjectCallback;
+
+    @Mock
+    private ErrorDescriptor descriptorMock;
 
     private ExportRequestAdapter adapterSpy;
     private String taskId = "njkhfs8374";
@@ -138,7 +142,7 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         assertSame(retrieved, operationResultInputStreamMock);
     }
 
-    @Test
+    @Test(enabled = false)
     /**
      * for {@link ExportRequestAdapter#asyncFetch(Callback)}
      */
@@ -541,11 +545,210 @@ public class ExportRequestAdapterTest extends PowerMockTestCase {
         verify(requestInputStreamMock, times(1)).get();
     }
 
+    @Test
+    public void should_1() throws InterruptedException {
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        // ...
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(InputStream.class), eq(new String[]{"/export", taskId, "/exportFile"}))).thenReturn(requestInputStreamMock);
+
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(adapterSpy)
+                .state();
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(requestInputStreamMock)
+                .get();
+        PowerMockito
+                .doReturn(stateMock)
+                .when(operationResultInputStreamMock)
+                .getEntity();
+        PowerMockito
+                .doReturn("inprogress")
+                .doReturn("inprogress")
+                .doReturn("finished")
+                .when(stateMock)
+                .getPhase();
+
+
+        final Callback<OperationResult<InputStream>, Void> callbackSpy = PowerMockito.spy(new Callback<OperationResult<InputStream>, Void>() {
+            @Override
+            public Void execute(OperationResult<InputStream> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncFetch(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(5000);
+        }
+
+        /* Than */
+        Mockito.verify(callbackSpy, times(1)).execute(operationResultInputStreamMock);
+        assertNotSame(currentThreadId, newThreadId.get());
+        assertNotNull(retrieved);
+
+        Mockito.verify(stateMock, times(3)).getPhase();
+        Mockito.verify(operationResultInputStreamMock, times(2)).getEntity();
+        Mockito.verify(requestInputStreamMock, times(1)).get();
+    }
+
+    @Test
+    public void should_2() throws InterruptedException {
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        // ...
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(InputStream.class), eq(new String[]{"/export", taskId, "/exportFile"}))).thenReturn(requestInputStreamMock);
+
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(adapterSpy)
+                .state();
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(requestInputStreamMock)
+                .get();
+        PowerMockito
+                .doReturn(stateMock)
+                .when(operationResultInputStreamMock)
+                .getEntity();
+        PowerMockito
+                .doReturn("failed")
+                .doReturn("failed")
+                .when(stateMock)
+                .getPhase();
+        PowerMockito
+                .doReturn("msg_")
+                .when(stateMock)
+                .getMessage();
+
+
+        final Callback<OperationResult<InputStream>, Void> callbackSpy = PowerMockito.spy(new Callback<OperationResult<InputStream>, Void>() {
+            @Override
+            public Void execute(OperationResult<InputStream> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncFetch(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+        /* Than */
+        assertNotSame(currentThreadId, newThreadId.get());
+        assertNotNull(retrieved);
+
+        try {
+            retrieved.getFuture().get();
+        } catch (ExecutionException e) {
+            assertEquals(e.getMessage(), "com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ExportFailedException: msg_");
+        }
+    }
+
+    @Test
+    public void should_3() throws InterruptedException {
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        // ...
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(InputStream.class), eq(new String[]{"/export", taskId, "/exportFile"}))).thenReturn(requestInputStreamMock);
+
+        ExportRequestAdapter adapterSpy = PowerMockito.spy(new ExportRequestAdapter(sessionStorageMock, taskId));
+
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(adapterSpy)
+                .state();
+        PowerMockito
+                .doReturn(operationResultInputStreamMock)
+                .when(requestInputStreamMock)
+                .get();
+        PowerMockito
+                .doReturn(stateMock)
+                .when(operationResultInputStreamMock)
+                .getEntity();
+        PowerMockito
+                .doReturn("failed")
+                .doReturn("failed")
+                .when(stateMock)
+                .getPhase();
+        PowerMockito
+                .doReturn("msg_")
+                .when(stateMock)
+                .getMessage();
+        PowerMockito
+                .doReturn(descriptorMock)
+                .when(stateMock)
+                .getErrorDescriptor();
+        PowerMockito
+                .doReturn("_msg")
+                .when(descriptorMock)
+                .getMessage();
+
+
+        final Callback<OperationResult<InputStream>, Void> callbackSpy = PowerMockito.spy(new Callback<OperationResult<InputStream>, Void>() {
+            @Override
+            public Void execute(OperationResult<InputStream> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncFetch(callbackSpy);
+
+        /* Wait */
+        synchronized (callbackSpy) {
+            callbackSpy.wait(1000);
+        }
+
+        /* Than */
+        assertNotSame(currentThreadId, newThreadId.get());
+        assertNotNull(retrieved);
+
+        try {
+            retrieved.getFuture().get();
+        } catch (ExecutionException e) {
+            assertEquals(e.getMessage(), "com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.ExportFailedException: _msg");
+        }
+    }
+
     @AfterMethod
     public void after() {
         reset(stateMock, sessionStorageMock, requestStateDtoMock, requestInputStreamMock,
                 operationResultStateDtoMock, operationResultInputStreamMock, callback, streamRequestBuilderMock,
-                operationResultObjectCallback);
+                operationResultObjectCallback,descriptorMock);
     }
 }
 

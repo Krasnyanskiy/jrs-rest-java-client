@@ -446,7 +446,7 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
         //verifyPrivate(adapterSpy, times(1)).invoke("convertToLocalCalendarType", getResultMock);
     }
 
-    @Test
+    @Test (enabled = false)
     public void asyncDelete() throws Exception {
 
         PowerMockito.mockStatic(JerseyRequest.class);
@@ -503,6 +503,47 @@ public class SingleCalendarOperationsAdapterTest extends PowerMockTestCase {
 
         //Mockito.verify(callbackMock3).execute(getResultMock);
         //Mockito.verify(requestMock).addParams(paramsSpy);
+    }
+
+    @Test
+    public void should_1() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(Object.class), eq(new String[]{"/jobs", "/calendars", "testCalendarName"}))).thenReturn(objRequestMock);
+
+        PowerMockito.doReturn(delResultMock).when(objRequestMock).delete();
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult, Void> callback = PowerMockito.spy(new Callback<OperationResult, Void>() {
+            @Override
+            public Void execute(OperationResult data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        SingleCalendarOperationsAdapter adapterSpy = PowerMockito.spy(new SingleCalendarOperationsAdapter(sessionStorageMock, "testCalendarName"));
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        /* Wait */
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+
+        Mockito.verify(objRequestMock).delete();
+        Mockito.verify(callback).execute(delResultMock);
     }
 
     @AfterMethod

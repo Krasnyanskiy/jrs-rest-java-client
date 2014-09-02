@@ -63,7 +63,7 @@ public class JobsService extends AbstractAdapter {
             request.setContentType(MimeTypeUtil.toCorrectContentMime(sessionStorage.getConfiguration(), "application/job+{mime}"));
             request.setAccept(MimeTypeUtil.toCorrectAcceptMime(sessionStorage.getConfiguration(), "application/job+{mime}"));
         } else {
-            request.setContentType("application/job+json");
+                request.setContentType("application/job+json");
             request.setAccept("application/job+json");
         }
         RequestExecution task = new RequestExecution(new Runnable() {
