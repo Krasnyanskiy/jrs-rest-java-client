@@ -187,9 +187,9 @@
                         <excludes>
                             <exclude>**/com/jaspersoft/jasperserver/jaxrs/client/dto/**</exclude>
                         </excludes>
-                        <exclude>
-                            **/com/jaspersoft/jasperserver/jaxrs/client/apiadapters/**
-                        </exclude>
+                        <!--<exclude>-->
+                            <!--**/com/jaspersoft/jasperserver/jaxrs/client/apiadapters/**-->
+                        <!--</exclude>-->
                     </instrumentation>
                 </configuration>
             </plugin>
