@@ -17,6 +17,7 @@ import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.core.MimeTypeUtil}
@@ -78,6 +79,13 @@ public class MimeTypeUtilTest extends PowerMockTestCase {
         String retrieved = MimeTypeUtil.toCorrectAcceptMime(configurationMock, "application/xml");
         assertEquals(retrieved, "application/xml");
     }
+
+    @Test
+    public void should_create_instance() {
+        MimeTypeUtil util = new MimeTypeUtil();
+        assertNotNull(util);
+    }
+
 
     @AfterMethod
     public void after() {

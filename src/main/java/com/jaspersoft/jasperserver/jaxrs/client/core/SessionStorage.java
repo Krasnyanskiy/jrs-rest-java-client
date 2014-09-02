@@ -27,10 +27,10 @@ import com.jaspersoft.jasperserver.jaxrs.client.filters.SessionOutputFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.glassfish.jersey.client.ClientProperties;
+import sun.net.www.protocol.https.DefaultHostnameVerifier;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -62,12 +62,13 @@ public class SessionStorage {
     private void initSSL(ClientBuilder clientBuilder) {
         try {
             SSLContext sslContext = SSLContext.getInstance("SSL");
-            HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+            HostnameVerifier hostnameVerifier = new DefaultHostnameVerifier();
+            /*new HostnameVerifier() {
                 @Override
                 public boolean verify(String s, SSLSession sslSession) {
                     return true;
                 }
-            };
+            };*/
             sslContext.init(null, configuration.getTrustManagers(), new SecureRandom());
             clientBuilder.sslContext(sslContext);
             clientBuilder.hostnameVerifier(hostnameVerifier);
@@ -98,13 +99,10 @@ public class SessionStorage {
         rootTarget = client.target(configuration.getJasperReportsServerUrl());
         login();
         rootTarget.register(new SessionOutputFilter(sessionId));
-        //rootTarget.request(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
     }
 
     private void login() {
-
         Map<String, String> securityAttributes = getSecurityAttributes();
-
         Form form = new Form();
         form.param("j_username", credentials.getUsername())
                 .param("j_password", securityAttributes.get("password"));
@@ -115,11 +113,6 @@ public class SessionStorage {
                 .request()
                 .cookie("JSESSIONID", securityAttributes.get("sessionId"))
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-        /**
-         * todo: fix this magic here
-         */
-        response.bufferEntity();
 
         if (response.getStatus() == ResponseStatus.FOUND) {
             this.sessionId = parseSessionId(response);

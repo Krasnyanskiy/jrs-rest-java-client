@@ -1,5 +1,6 @@
 package com.jaspersoft.jasperserver.jaxrs.client.core;
 
+import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.AbstractAdapter;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.organizations.OrganizationsService;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.roles.RolesService;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.authority.users.UsersService;
@@ -12,239 +13,184 @@ import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.query.QueryExecutorS
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting.ReportingService;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources.ResourcesService;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.serverInfo.ServerInfoService;
-import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.handling.DefaultErrorHandler;
-import com.jaspersoft.jasperserver.jaxrs.client.core.support.TestServiceClass;
-import org.glassfish.jersey.client.JerseyInvocation;
-import org.glassfish.jersey.client.JerseyWebTarget;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import com.jaspersoft.jasperserver.jaxrs.client.core.exceptions.RequestedRepresentationNotAvailableForResourceException;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertSame;
+
 
 /**
- * Unit tests for {@link com.jaspersoft.jasperserver.jaxrs.client.core.Session}
+ * Unit tests for {@link Session}
  */
-@PrepareForTest(Session.class)
-public class SessionTest extends PowerMockTestCase {
+public class SessionTest {
 
     @Mock
-    private SessionStorage expectedSessionStorage;
+    public SessionStorage sessionStorageMock;
 
     @Mock
-    private JerseyWebTarget webTargetMock;
+    public WebTarget targetMock;
 
     @Mock
-    private Response responseMock;
+    public Invocation.Builder builderMock;
 
     @Mock
-    private JerseyInvocation.Builder builderMock;
+    public Response responseMock;
 
     @Mock
-    private DefaultErrorHandler errorHandlerMock;
-
-    @Captor
-    private ArgumentCaptor<String> arg;
-
-    @Mock
-    private OrganizationsService organizationsServiceMock;
-
-    @Mock
-    private ServerInfoService serverInfoServiceMock;
-
-    @Mock
-    private UsersService usersServiceMock;
-
-    @Mock
-    private RolesService rolesServiceMock;
-
-    @Mock
-    private PermissionsService permissionsServiceMock;
-
-    @Mock
-    private ExportService exportServiceMock;
-
-    @Mock
-    private ImportService importServiceMock;
-
-    @Mock
-    private ReportingService reportingServiceMock;
-
-    @Mock
-    private ResourcesService resourcesServiceMock;
-
-    @Mock
-    private JobsService jobsServiceMock;
-
-    @Mock
-    private DomainMetadataService domainServiceMock;
-
-    @Mock
-    private QueryExecutorService queryExecutorServiceMock;
-
-    private Session session;
-    private Session sessionSpy;
+    public Response.StatusType statusTypeMock;
 
     @BeforeMethod
-    public void setUp() {
+    public void before() {
         initMocks(this);
-        session = new Session(expectedSessionStorage);
-        sessionSpy = spy(new Session(expectedSessionStorage));
     }
 
-    @Test(testName = "Session_constructor")
-    public void should_create_a_new_object_with_proper_field() {
+    @Test
+    public void should_logout() {
+        Mockito.doReturn(targetMock).when(sessionStorageMock).getRootTarget();
+        Mockito.doReturn(targetMock).when(targetMock).path(anyString());
+        Mockito.doReturn(builderMock).when(targetMock).request();
+        Mockito.doReturn(responseMock).when(builderMock).get();
+        Mockito.doReturn(200).when(responseMock).getStatus();
 
-        // When
-        SessionStorage retrieved = session.getStorage();/*sessionSpy.getStorage();*/
-
-        // Than
-        assertNotNull(session);
-        assertEquals(retrieved, expectedSessionStorage);
-    }
-
-    @Test(testName = "logout")
-    public void should_invoke_a_bunch_of_builder_methods_with_proper_params() throws Exception {
-
-        // Given
-        final String PATH = "/exituser.html";
-
-        when(expectedSessionStorage.getRootTarget()).thenReturn(webTargetMock);
-        when(webTargetMock.path(arg.capture())).thenReturn(webTargetMock);
-        when(webTargetMock.request()).thenReturn(builderMock);
-        when(builderMock.get()).thenReturn(responseMock);
-        when(responseMock.getStatus()).thenReturn(404);
-        whenNew(DefaultErrorHandler.class).withNoArguments().thenReturn(errorHandlerMock);
-        doNothing().when(errorHandlerMock).handleError(responseMock);
-
-        // When
+        Session session = new Session(sessionStorageMock);
         session.logout();
 
-        // Than
-        assertEquals(arg.getValue(), PATH);
-        verify(expectedSessionStorage).getRootTarget();
-        verify(webTargetMock).path(arg.getValue());
-        verify(webTargetMock).request();
-        verify(builderMock).get();
-        verify(responseMock).getStatus();
-        verify(errorHandlerMock).handleError(responseMock);
+        Mockito.verify(sessionStorageMock).getRootTarget();
+        Mockito.verify(targetMock).path(anyString());
+        Mockito.verify(targetMock).request();
+        Mockito.verify(builderMock).get();
+        Mockito.verify(responseMock).getStatus();
     }
 
-    @Test(testName = "getService")
-    public void should_return_new_instance_of_AbstractAdapter_child() {
-        TestServiceClass service = session.getService(TestServiceClass.class);
-        assertNotNull(service);
-        assertTrue(service.isConstructorActivityFlag()); // checks if the proper constructor was invoked
+    @Test(expectedExceptions = RequestedRepresentationNotAvailableForResourceException.class)
+    public void should_throw_exception_when_response_status_is_greater_than_400() {
+        Mockito.doReturn(targetMock).when(sessionStorageMock).getRootTarget();
+        Mockito.doReturn(targetMock).when(targetMock).path(anyString());
+        Mockito.doReturn(builderMock).when(targetMock).request();
+        Mockito.doReturn(responseMock).when(builderMock).get();
+        Mockito.doReturn(statusTypeMock).when(responseMock).getStatusInfo();
+        Mockito.doReturn("phrase_").when(statusTypeMock).getReasonPhrase();
+        Mockito.doReturn(406).when(responseMock).getStatus();
+
+        Session session = new Session(sessionStorageMock);
+        session.logout();
     }
 
-    @Test(testName = "organizationsService")
-    public void should_return_referenced_OrganizationsService_instance() {
-        when(sessionSpy.getService(OrganizationsService.class)).thenReturn(organizationsServiceMock);
-        OrganizationsService retrieved = sessionSpy.organizationsService();
-        assertEquals(retrieved, organizationsServiceMock);
+    @Test(expectedExceptions = RuntimeException.class)
+    public void should_throw_exception_when_cannot_instantiate_service_class() {
+        Session session = new Session(sessionStorageMock);
+        class CustomAdapter extends AbstractAdapter {
+            public CustomAdapter(SessionStorage sessionStorage) {
+                super(sessionStorage);
+            }
+        }
+        session.getService(CustomAdapter.class);
     }
 
-    @Test(testName = "serverInfoService")
-    public void should_return_referenced_ServerInfoService_instance() {
-        when(sessionSpy.getService(ServerInfoService.class)).thenReturn(serverInfoServiceMock);
-        ServerInfoService retrieved = sessionSpy.serverInfoService();
-        assertEquals(retrieved, serverInfoServiceMock);
+    @Test
+    public void should_return_not_null_JobsService() {
+        Session session = new Session(sessionStorageMock);
+        JobsService retrieved = session.jobsService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "usersService")
-    public void should_return_referenced_UsersService_instance() {
-        when(sessionSpy.getService(UsersService.class)).thenReturn(usersServiceMock);
-        UsersService retrieved = sessionSpy.usersService();
-        assertEquals(retrieved, usersServiceMock);
+    @Test
+    public void should_return_proper_storage() {
+        Session session = new Session(sessionStorageMock);
+        assertSame(session.getStorage(), sessionStorageMock);
     }
 
-    @Test(testName = "rolesService")
-    public void should_return_referenced_RolesService_instance() {
-        when(sessionSpy.getService(RolesService.class)).thenReturn(rolesServiceMock);
-        RolesService retrieved = sessionSpy.rolesService();
-        assertEquals(retrieved, rolesServiceMock);
+    @Test
+    public void should_return_not_null_OrganizationsService() {
+        Session session = new Session(sessionStorageMock);
+        OrganizationsService retrieved = session.organizationsService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "permissionsService")
-    public void should_return_referenced_PermissionsService_instance() {
-        when(sessionSpy.getService(PermissionsService.class)).thenReturn(permissionsServiceMock);
-        PermissionsService retrieved = sessionSpy.permissionsService();
-        assertEquals(retrieved, permissionsServiceMock);
+    @Test
+    public void should_return_not_null_ServerInfoService() {
+        Session session = new Session(sessionStorageMock);
+        ServerInfoService retrieved = session.serverInfoService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "exportService")
-    public void should_return_referenced_ExportService_instance() {
-        when(sessionSpy.getService(ExportService.class)).thenReturn(exportServiceMock);
-        ExportService retrieved = sessionSpy.exportService();
-        assertEquals(retrieved, exportServiceMock);
+    @Test
+    public void should_return_not_null_UsersService() {
+        Session session = new Session(sessionStorageMock);
+        UsersService retrieved = session.usersService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "importService")
-    public void should_return_referenced_ImportService_instance() {
-        when(sessionSpy.getService(ImportService.class)).thenReturn(importServiceMock);
-        ImportService retrieved = sessionSpy.importService();
-        assertEquals(retrieved, importServiceMock);
+    @Test
+    public void should_return_not_null_RolesService() {
+        Session session = new Session(sessionStorageMock);
+        RolesService retrieved = session.rolesService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "reportingService")
-    public void should_return_referenced_ReportingService_instance() {
-        when(sessionSpy.getService(ReportingService.class)).thenReturn(reportingServiceMock);
-        ReportingService retrieved = sessionSpy.reportingService();
-        assertEquals(retrieved, reportingServiceMock);
+    @Test
+    public void should_return_not_null_PermissionsService() {
+        Session session = new Session(sessionStorageMock);
+        PermissionsService retrieved = session.permissionsService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "resourcesService")
-    public void should_return_referenced_ResourcesService_instance() {
-        when(sessionSpy.getService(ResourcesService.class)).thenReturn(resourcesServiceMock);
-        ResourcesService retrieved = sessionSpy.resourcesService();
-        assertEquals(retrieved, resourcesServiceMock);
+    @Test
+    public void should_return_not_null_ExportService() {
+        Session session = new Session(sessionStorageMock);
+        ExportService retrieved = session.exportService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "jobsService")
-    public void should_return_referenced_JobsService_instance() {
-        when(sessionSpy.getService(JobsService.class)).thenReturn(jobsServiceMock);
-        JobsService retrieved = sessionSpy.jobsService();
-        assertEquals(retrieved, jobsServiceMock);
+    @Test
+    public void should_return_not_null_ImportService() {
+        Session session = new Session(sessionStorageMock);
+        ImportService retrieved = session.importService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "domainService")
-    public void should_return_referenced_DomainMetadataService_instance() {
-        when(sessionSpy.getService(DomainMetadataService.class)).thenReturn(domainServiceMock);
-        DomainMetadataService retrieved = sessionSpy.domainService();
-        assertEquals(retrieved, domainServiceMock);
+    @Test
+    public void should_return_not_null_ReportingService() {
+        Session session = new Session(sessionStorageMock);
+        ReportingService retrieved = session.reportingService();
+        assertNotNull(retrieved);
     }
 
-    @Test(testName = "queryExecutorService")
-    public void should_return_referenced_QueryExecutorService_instance() {
-        when(sessionSpy.getService(QueryExecutorService.class)).thenReturn(queryExecutorServiceMock);
-        QueryExecutorService retrieved = sessionSpy.queryExecutorService();
-        assertEquals(retrieved, queryExecutorServiceMock);
+    @Test
+    public void should_return_not_null_ResourcesService() {
+        Session session = new Session(sessionStorageMock);
+        ResourcesService retrieved = session.resourcesService();
+        assertNotNull(retrieved);
+    }
+
+    @Test
+    public void should_return_not_null_DomainMetadataService() {
+        Session session = new Session(sessionStorageMock);
+        DomainMetadataService retrieved = session.domainService();
+        assertNotNull(retrieved);
+    }
+
+    @Test
+    public void should_return_not_null_QueryExecutorService() {
+        Session session = new Session(sessionStorageMock);
+        QueryExecutorService retrieved = session.queryExecutorService();
+        assertNotNull(retrieved);
     }
 
     @AfterMethod
-    public void tearDown() {
-        reset(expectedSessionStorage, webTargetMock, responseMock, builderMock, errorHandlerMock,
-                organizationsServiceMock, serverInfoServiceMock, usersServiceMock,
-                rolesServiceMock, permissionsServiceMock, exportServiceMock,
-                importServiceMock, reportingServiceMock, resourcesServiceMock,
-                jobsServiceMock, domainServiceMock, queryExecutorServiceMock,
-                sessionSpy
-        );
+    public void after() {
+        reset(sessionStorageMock, targetMock, builderMock);
     }
 }

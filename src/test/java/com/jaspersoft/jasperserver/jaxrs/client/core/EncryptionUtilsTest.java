@@ -32,6 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -118,21 +119,12 @@ public class EncryptionUtilsTest extends PowerMockTestCase {
         verify(logMock, times(1)).error(anyString()); // был вызван только один раз
     }
 
-    @Test(enabled = false)
+    @Test(expectedExceptions = RuntimeException.class)
     public void should_invoke_info_method_of_Log_class_only_once() {
-
+        EncryptionUtils.encryptPassword("pass", "n", "e");
 //        PowerMockito.mockStatic(LogFactory.class);
 //        PowerMockito.when(LogFactory.getLog(EncryptionUtils.class)).thenReturn(logMock);
-//        PowerMockito.when(responseMock.readEntity(String.class)).thenReturn("a");
-//
-//        try {
-//            EncryptionUtils.parseEncryptionParams(responseMock);
-//        } catch (Exception e) {
-//            // NOP
-//        }
-//
 //        verify(logMock, times(1)).info(anyString());
-
     }
 
     @Test(enabled = true)
@@ -194,6 +186,19 @@ public class EncryptionUtilsTest extends PowerMockTestCase {
 
         assertTrue(retrieved.size() == 2);
         assertEquals(retrieved.get("e"), "e_");
+    }
+
+    @Test
+    public void should_create_instance() {
+        EncryptionUtils utils = new EncryptionUtils();
+        assertNotNull(utils);
+    }
+
+    @Test
+    public void should_return_null_map() {
+        PowerMockito.when(responseMock.readEntity(String.class)).thenReturn("a");
+        Map<String, String> retrieved = EncryptionUtils.parseEncryptionParams(responseMock);
+        assertNull(retrieved);
     }
 
     @AfterMethod
