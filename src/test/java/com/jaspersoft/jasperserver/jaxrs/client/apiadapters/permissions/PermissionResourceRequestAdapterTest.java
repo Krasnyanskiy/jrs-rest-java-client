@@ -279,6 +279,52 @@ public class PermissionResourceRequestAdapterTest extends PowerMockTestCase {
         Assert.assertNotSame(currentThreadId, newThreadId.get());
     }
 
+    @Test
+    public void should_1() throws InterruptedException {
+
+        /* Given */
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(RepositoryPermissionListWrapper.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(expectedResultMock).when(requestMock).put(wrapperMock);
+
+        PowerMockito.doReturn(configurationMock).when(sessionStorageMock).getConfiguration();
+        PowerMockito.doReturn(MimeType.JSON).when(configurationMock).getContentMimeType();
+
+        PermissionResourceRequestAdapter adapterSpy = PowerMockito.spy(new PermissionResourceRequestAdapter(sessionStorageMock, fakeUri));
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<RepositoryPermissionListWrapper>, Void> callback = PowerMockito.spy(new Callback<OperationResult<RepositoryPermissionListWrapper>, Void>() {
+            @Override
+            public Void execute(OperationResult<RepositoryPermissionListWrapper> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(expectedResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(wrapperMock, callback);
+
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+
+        Mockito.verify(requestMock).put(wrapperMock);
+        Mockito.verify(callback).execute(expectedResultMock);
+        Mockito.verify(sessionStorageMock).getConfiguration();
+        Mockito.verify(configurationMock).getContentMimeType();
+    }
+
     @AfterMethod
     public void after() {
         Mockito.reset(sessionStorageMock, requestMock, wrapperMock, expectedResultMock, configurationMock);

@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -225,6 +226,47 @@ public class SinglePermissionRecipientRequestAdapterTest extends PowerMockTestCa
         Mockito.verify(callback).execute(resultMock);
         Assert.assertNotNull(retrieved);
         Assert.assertNotSame(currentThreadId, newThreadId.get());
+    }
+
+    @Test
+    public void should_1() throws InterruptedException {
+
+        PowerMockito.mockStatic(JerseyRequest.class);
+        PowerMockito.when(JerseyRequest.buildRequest(eq(storageMock), eq(RepositoryPermission.class), eq(new String[]{"/permissions", "resourceUri"}))).thenReturn(requestMock);
+        PowerMockito.doReturn(resultMock).when(requestMock).put(permissionMock);
+
+        SinglePermissionRecipientRequestAdapter adapterSpy = PowerMockito.spy(new SinglePermissionRecipientRequestAdapter(storageMock, "resourceUri", "recipient"));
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<RepositoryPermission>, Void> callback = PowerMockito.spy(new Callback<OperationResult<RepositoryPermission>, Void>() {
+            @Override
+            public Void execute(OperationResult<RepositoryPermission> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(null).when(callback).execute(resultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncCreateOrUpdate(permissionMock, callback);
+
+        /* Wait */
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+
+        Mockito.verify(requestMock).put(permissionMock);
+        Mockito.verify(requestMock).addMatrixParam(anyString(), anyString());
+        Mockito.verify(callback).execute(resultMock);
     }
 
     @AfterMethod
