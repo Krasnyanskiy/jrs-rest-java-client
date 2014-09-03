@@ -448,7 +448,7 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         }
     }
 
-    @Test
+    @Test(enabled = true)
     /**
      * for {@link BatchJobsOperationsAdapter#asyncPause(Callback)}
      */
@@ -488,9 +488,9 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         Assert.assertNotNull(retrieved);
         Assert.assertNotSame(currentThreadId, newThreadId.get());
 
-        List<JobIdListWrapper> captured = captor.getAllValues();
-        assertTrue(captured.size() == 1);
-        List<Long> ids = captured.get(0).getIds();
+        JobIdListWrapper captured = captor.getValue();
+        assertTrue(captured.getIds().size() == 2);
+        List<Long> ids = captured.getIds();
         assertTrue(ids.get(0) == 12323412342135235L);
     }
 
