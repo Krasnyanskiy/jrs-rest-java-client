@@ -13,6 +13,7 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.jobs.jaxb.wrappers.JobSummar
 import com.jaspersoft.jasperserver.jaxrs.client.dto.jobs.reportjobmodel.ReportJobModel;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -62,11 +63,8 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({JerseyRequest.class, JAXBContext.class, ObjectMapper.class, BatchJobsOperationsAdapter.class})
 public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
-//    @Captor
-//    private ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
-
-//    @Captor
-//    private ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+    @Captor
+    private ArgumentCaptor<JobIdListWrapper> listWrapperCaptor;
 
     @Mock
     private SessionStorage sessionStorageMock;
@@ -233,8 +231,8 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_update_jobs_with_specified_ids_for_json_content() throws Exception {
 
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs"})).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs"})).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
 
@@ -263,8 +261,8 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_update_jobs_with_specified_ids_for_xml_content() throws Exception {
 
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs"})).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs"})).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
 
@@ -294,12 +292,12 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_pause_all_jobs_with_corresponding_ids() throws Exception {
 
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
+        mockStatic(JerseyRequest.class);
         ArrayList<Long> ids = new ArrayList<Long>();
         PowerMockito.whenNew(JobIdListWrapper.class).withArguments(ids).thenReturn(jobIdListWrapperMock);
         BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
-        PowerMockito.when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/pause"})).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock)).thenReturn(jobIdListWrapperOperationResultMock);
+        when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/pause"})).thenReturn(jobIdListWrapperJerseyRequestMock);
+        when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock)).thenReturn(jobIdListWrapperOperationResultMock);
 
         // When
         OperationResult<JobIdListWrapper> retrieved = adapter.pause();
@@ -317,12 +315,12 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_resume_all_jobs_with_corresponding_ids() throws Exception {
 
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
+        mockStatic(JerseyRequest.class);
         ArrayList<Long> ids = new ArrayList<Long>();
         PowerMockito.whenNew(JobIdListWrapper.class).withArguments(ids).thenReturn(jobIdListWrapperMock);
         BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
-        PowerMockito.when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/resume"})).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock)).thenReturn(jobIdListWrapperOperationResultMock);
+        when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/resume"})).thenReturn(jobIdListWrapperJerseyRequestMock);
+        when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock)).thenReturn(jobIdListWrapperOperationResultMock);
 
         // When
         OperationResult<JobIdListWrapper> retrieved = adapter.resume();
@@ -337,13 +335,17 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
     @Test
     public void should_restart_all_jobs_with_corresponding_ids() throws Exception {
+
         // Given
-        PowerMockito.mockStatic(JerseyRequest.class);
+        mockStatic(JerseyRequest.class);
         ArrayList<Long> ids = new ArrayList<Long>();
         PowerMockito.whenNew(JobIdListWrapper.class).withArguments(ids).thenReturn(jobIdListWrapperMock);
         BatchJobsOperationsAdapter adapter = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
-        PowerMockito.when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/restart"})).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock)).thenReturn(jobIdListWrapperOperationResultMock);
+
+        when(buildRequest(sessionStorageMock, JobIdListWrapper.class, new String[]{"/jobs", "/restart"}))
+                .thenReturn(jobIdListWrapperJerseyRequestMock);
+        when(jobIdListWrapperJerseyRequestMock.post(jobIdListWrapperMock))
+                .thenReturn(jobIdListWrapperOperationResultMock);
 
         // When
         OperationResult<JobIdListWrapper> retrieved = adapter.restart();
@@ -360,24 +362,32 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_1() throws InterruptedException {
 
         /* Given */
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobSummaryListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobSummaryListWrapperJerseyRequestMock);
-        PowerMockito.doReturn(wrapperOperationResultMock).when(jobSummaryListWrapperJerseyRequestMock).get();
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobSummaryListWrapper.class),
+                eq(new String[]{"/jobs"}))).thenReturn(jobSummaryListWrapperJerseyRequestMock);
+        PowerMockito
+                .doReturn(wrapperOperationResultMock)
+                .when(jobSummaryListWrapperJerseyRequestMock)
+                .get();
+
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
 
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        final Callback<OperationResult<JobSummaryListWrapper>, Void> callback = PowerMockito.spy(new Callback<OperationResult<JobSummaryListWrapper>, Void>() {
-            @Override
-            public Void execute(OperationResult<JobSummaryListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobSummaryListWrapper>, Void> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobSummaryListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<JobSummaryListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(null).when(callback).execute(wrapperOperationResultMock);
 
@@ -412,43 +422,102 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
         /* Given */
         ObjectMapper mapperSpy = PowerMockito.spy(new ObjectMapper());
-        PowerMockito.whenNew(ObjectMapper.class).withNoArguments().thenReturn(mapperSpy);
-        PowerMockito.when(mapperSpy.writeValueAsString(any(Job.class))).thenThrow(new IOException());
+        PowerMockito
+                .whenNew(ObjectMapper.class)
+                .withNoArguments()
+                .thenReturn(mapperSpy);
+        when(mapperSpy.writeValueAsString(any(Job.class)))
+                .thenThrow(new IOException());
 
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobSummaryListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobSummaryListWrapperJerseyRequestMock);
-        PowerMockito.doReturn(wrapperOperationResultMock).when(jobSummaryListWrapperJerseyRequestMock).get();
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobSummaryListWrapper.class),
+                eq(new String[]{"/jobs"}))).thenReturn(jobSummaryListWrapperJerseyRequestMock);
+        PowerMockito
+                .doReturn(wrapperOperationResultMock)
+                .when(jobSummaryListWrapperJerseyRequestMock)
+                .get();
+
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
-
-        final AtomicInteger newThreadId = new AtomicInteger();
-        final int currentThreadId = (int) Thread.currentThread().getId();
-
-        final Callback<OperationResult<JobSummaryListWrapper>, Void> callback = PowerMockito.spy(new Callback<OperationResult<JobSummaryListWrapper>, Void>() {
-            @Override
-            public Void execute(OperationResult<JobSummaryListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobSummaryListWrapper>, Void> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobSummaryListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<JobSummaryListWrapper> data) {
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(null).when(callback).execute(wrapperOperationResultMock);
-
-        /* When */
         Job job = new Job();
 
-        RequestExecution retrieved = null;
         try {
-            retrieved = adapterSpy.asyncSearch(job, callback);
+
+            /* When */
+            adapterSpy.asyncSearch(job, callback);
         } catch (Exception e) {
+
+            /* Than */
             assertTrue(instanceOf(RuntimeException.class).matches(e));
             assertEquals(e.getMessage(), "Failed to build criteria json.");
         }
     }
 
-    @Test(enabled = true)
+    @Test
+    /**
+     * for {@link BatchJobsOperationsAdapter#asyncPause(Callback)}
+     */
+    public void should_pause_all_jobs_using_their_ids_asynchronously() {
+
+        /* Given */
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                        eq(sessionStorageMock),
+                        eq(JobIdListWrapper.class),
+                        eq(new String[]{"/jobs", "/pause"}))
+        ).thenReturn(jobIdListWrapperJerseyRequestMock);
+
+        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(anyObject());
+        BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
+        adapterSpy.parameter(JobsParameter.JOB_ID, "1");
+        adapterSpy.parameter(JobsParameter.JOB_ID, "2");
+
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        final Callback<OperationResult<JobIdListWrapper>, Void> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Void>() {
+                    @Override
+                    public Void execute(OperationResult<JobIdListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
+
+        PowerMockito.doReturn(null).when(callback).execute(jobIdListWrapperOperationResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncPause(callback);
+
+        /* Than */
+        Assert.assertNotNull(retrieved);
+        Assert.assertNotSame(currentThreadId, newThreadId.get());
+
+        Mockito.verify(jobIdListWrapperJerseyRequestMock).post(listWrapperCaptor.capture());
+        Mockito.verify(callback).execute(jobIdListWrapperOperationResultMock);
+
+        JobIdListWrapper listWrapper = listWrapperCaptor.getValue();
+        assertTrue(listWrapper.getIds().size() == 2);
+        assertSame(listWrapper.getIds().get(0), 1L);
+    }
+
+    @Test(enabled = false)
     /**
      * for {@link BatchJobsOperationsAdapter#asyncPause(Callback)}
      */
@@ -456,24 +525,31 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
         /* Given */
         ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/pause"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs", "/pause"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(/*captor.capture()*/anyObject());
+        PowerMockito
+                .doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
 
-        final Callback<OperationResult<JobIdListWrapper>, Integer> callback = PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
-            @Override
-            public Integer execute(OperationResult<JobIdListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobIdListWrapper>, Integer> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
+                    @Override
+                    public Integer execute(OperationResult<JobIdListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(1).when(callback).execute(jobIdListWrapperOperationResultMock);
 
@@ -493,7 +569,6 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         assertTrue(captured.getIds().size() == 2);
         List<Long> ids = captured.getIds();
         assertTrue(ids.get(0) == 12323412342135235L);
-        captor = null;
     }
 
     @Test
@@ -504,24 +579,31 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
         /* Given */
         ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/resume"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs", "/resume"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(/*captor.capture()*/anyObject());
+        PowerMockito
+                .doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
 
-        final Callback<OperationResult<JobIdListWrapper>, Integer> callback = PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
-            @Override
-            public Integer execute(OperationResult<JobIdListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobIdListWrapper>, Integer> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
+                    @Override
+                    public Integer execute(OperationResult<JobIdListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(1).when(callback).execute(jobIdListWrapperOperationResultMock);
 
@@ -536,43 +618,46 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         Assert.assertNotNull(retrieved);
         Assert.assertNotSame(currentThreadId, newThreadId.get());
 
-        //List<JobIdListWrapper> captured = captor.getAllValues();
         Mockito.verify(jobIdListWrapperJerseyRequestMock).post(captor.capture());
         assertTrue(captor.getValue().getIds().size() == 2);
-//        List<Long> ids = captured.get(0).getIds();
         assertTrue(captor.getValue().getIds().get(0) == 12323412342135235L);
-        captor = null;
     }
 
-    @Test (enabled = false)
+    @Test(enabled = true)
     /**
-     * for {@link BatchJobsOperationsAdapter#asyncResume(Callback)}
+     * for {@link BatchJobsOperationsAdapter#asyncRestart(Callback)}
      */
     public void should_force_server_to_restart_jobs_asynchronously() {
 
         /* Given */
         ArgumentCaptor<JobIdListWrapper> captor = ArgumentCaptor.forClass(JobIdListWrapper.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs", "/restart"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs", "/restart"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(/*captor.capture()*/anyObject());
+        PowerMockito.
+                doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
 
-        final Callback<OperationResult<JobIdListWrapper>, Integer> callback = PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
-            @Override
-            public Integer execute(OperationResult<JobIdListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobIdListWrapper>, Integer> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
+                    @Override
+                    public Integer execute(OperationResult<JobIdListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(1).when(callback).execute(jobIdListWrapperOperationResultMock);
-
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
         adapterSpy.parameter(JobsParameter.JOB_ID, "12323412342135235");
         adapterSpy.parameter(JobsParameter.JOB_ID, "12323412342135234");
@@ -588,7 +673,6 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         JobIdListWrapper val = captor.getValue();
         assertTrue(val.getIds().size() == 2);
         assertTrue(val.getIds().get(0) == 12323412342135235L);
-        captor = null;
     }
 
     @Test
@@ -596,24 +680,31 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
         /* Given */
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
 
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(/*argumentCaptor.capture()*/anyObject());
+        PowerMockito
+                .doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
 
-        final Callback<OperationResult<JobIdListWrapper>, Integer> callback = PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
-            @Override
-            public Integer execute(OperationResult<JobIdListWrapper> data) {
-                newThreadId.set((int) Thread.currentThread().getId());
-                synchronized (this) {
-                    this.notify();
-                }
-                return null;
-            }
-        });
+        final Callback<OperationResult<JobIdListWrapper>, Integer> callback =
+                PowerMockito.spy(new Callback<OperationResult<JobIdListWrapper>, Integer>() {
+                    @Override
+                    public Integer execute(OperationResult<JobIdListWrapper> data) {
+                        newThreadId.set((int) Thread.currentThread().getId());
+                        synchronized (this) {
+                            this.notify();
+                        }
+                        return null;
+                    }
+                });
 
         PowerMockito.doReturn(1).when(callback).execute(jobIdListWrapperOperationResultMock);
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
@@ -634,20 +725,31 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
 
         String passedValue = argumentCaptor.getValue();
         assertEquals(passedValue, "{\"username\":\"Bob\",\"label\":\"label\"}");
-        argumentCaptor = null;
     }
-
 
     @Test
     public void should_update() {
 
         /* Given */
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(/*argumentCaptor.capture()*/anyObject());
-        PowerMockito.doReturn(configurationMock).when(sessionStorageMock).getConfiguration();
-        PowerMockito.doReturn(MimeType.XML).when(configurationMock).getContentMimeType();
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+
+        PowerMockito
+                .doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
+        PowerMockito
+                .doReturn(configurationMock)
+                .when(sessionStorageMock)
+                .getConfiguration();
+        PowerMockito
+                .doReturn(MimeType.XML)
+                .when(configurationMock)
+                .getContentMimeType();
 
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
 
@@ -662,7 +764,10 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
         assertNotNull(retrieved);
 
         PowerMockito.verifyStatic();
-        buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}));
+        buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs"}));
 
         Mockito.verify(jobIdListWrapperJerseyRequestMock).post(argumentCaptor.capture());
         Mockito.verify(sessionStorageMock).getConfiguration();
@@ -679,24 +784,37 @@ public class BatchJobsOperationsAdapterTest extends PowerMockTestCase {
     public void should_throw_an_exception_during_update() throws JAXBException {
 
         /* Given */
-//        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        PowerMockito.mockStatic(JerseyRequest.class);
-        PowerMockito.when(buildRequest(eq(sessionStorageMock), eq(JobIdListWrapper.class), eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
-        PowerMockito.doReturn(jobIdListWrapperOperationResultMock).when(jobIdListWrapperJerseyRequestMock).post(anyObject()/*argumentCaptor.capture()*/);
-        PowerMockito.doReturn(configurationMock).when(sessionStorageMock).getConfiguration();
-        PowerMockito.doReturn(MimeType.XML).when(configurationMock).getContentMimeType();
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(
+                eq(sessionStorageMock),
+                eq(JobIdListWrapper.class),
+                eq(new String[]{"/jobs"}))).thenReturn(jobIdListWrapperJerseyRequestMock);
+
+        PowerMockito
+                .doReturn(jobIdListWrapperOperationResultMock)
+                .when(jobIdListWrapperJerseyRequestMock)
+                .post(anyObject());
+        PowerMockito
+                .doReturn(configurationMock)
+                .when(sessionStorageMock)
+                .getConfiguration();
+        PowerMockito
+                .doReturn(MimeType.XML)
+                .when(configurationMock)
+                .getContentMimeType();
 
         BatchJobsOperationsAdapter adapterSpy = PowerMockito.spy(new BatchJobsOperationsAdapter(sessionStorageMock));
 
-
-        PowerMockito.mockStatic(JAXBContext.class);
+        mockStatic(JAXBContext.class);
         Mockito.when(JAXBContext.newInstance(ReportJobModel.class)).thenThrow(new JAXBException("msg_"));
-
         ReportJobModel model = new ReportJobModel();
 
+        /* When */
         try {
             OperationResult<JobIdListWrapper> retrieved = adapterSpy.update(model);
         } catch (Exception e) {
+
+            /* Than */
             assertTrue(instanceOf(RuntimeException.class).matches(e));
             assertEquals(e.getMessage(), "Failed to build report job model xml.");
         }

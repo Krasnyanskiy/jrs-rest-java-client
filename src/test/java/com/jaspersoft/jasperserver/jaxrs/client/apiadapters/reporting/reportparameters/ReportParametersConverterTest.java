@@ -1,6 +1,7 @@
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.reporting.reportparameters;
 
 import com.jaspersoft.jasperserver.dto.reports.ReportParameters;
+import com.jaspersoft.jasperserver.dto.reports.inputcontrols.InputControlOption;
 import com.jaspersoft.jasperserver.dto.reports.inputcontrols.InputControlState;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -69,5 +71,33 @@ public class ReportParametersConverterTest extends PowerMockTestCase {
         /* Than */
         assertNotNull(retrieved);
         assertTrue(retrieved.getReportParameters().size() == 2);
+    }
+
+    @Test
+    public void should_create_not_null_instance() {
+        assertNotNull(new ReportParametersConverter());
+    }
+
+    @Test
+    public void should_return_covnerted_params() {
+
+        InputControlOption option1 = new InputControlOption().setSelected(true);
+        option1.setValue("OptionValue");
+        List<InputControlOption> inputControlOptions = new ArrayList<InputControlOption>();
+        inputControlOptions.add(option1);
+
+
+        InputControlState inputControlState = new InputControlState();
+        inputControlState.setId("1");
+        inputControlState.setOptions(inputControlOptions);
+
+        List<InputControlState> states = new ArrayList<InputControlState>();
+        states.add(inputControlState);
+
+        Map<String, Object> retrieved = ReportParametersConverter.getValueMapFromInputControlStates(states);
+
+        assertNotNull(retrieved);
+        String[] options = (String[]) retrieved.get("1");
+        assertEquals(options[0], "OptionValue");
     }
 }

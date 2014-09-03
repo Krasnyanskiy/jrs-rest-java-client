@@ -87,4 +87,9 @@ public class ReportParametersUtilsTest extends PowerMockTestCase {
         verifyStatic(times(1));
         ReportParametersUtils.toPathSegment(inputControlsIds);
     }
+
+    @Test
+    public void should_create_instance_of_class() {
+        assertNotNull(new ReportParametersUtils());
+    }
 }
