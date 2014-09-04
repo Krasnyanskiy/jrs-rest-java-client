@@ -33,16 +33,13 @@ public class ResourceValidationErrorHandler extends DefaultErrorHandler {
 
     @Override
     protected void handleBodyError(Response response) {
-        List<ErrorDescriptor> errorDescriptors = null;
-        if (response.getHeaderString("Content-Type").contains("xml") ||
-                response.getHeaderString("Content-Type").contains("json")) {
+        List<ErrorDescriptor> errorDescriptors;
+        if (response.getHeaderString("Content-Type").contains("xml") || response.getHeaderString("Content-Type").contains("json")) {
             ErrorDescriptor[] validationErrors = readBody(response, ErrorDescriptor[].class);
-
             if (validationErrors == null){
                 super.handleBodyError(response);
                 return;
             }
-
             errorDescriptors = Arrays.asList(validationErrors);
             throw new ValidationException(generateErrorMessage(errorDescriptors), errorDescriptors);
         }
