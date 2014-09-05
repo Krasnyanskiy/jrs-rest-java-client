@@ -79,7 +79,6 @@ public class SingleRoleRequestAdapter extends AbstractAdapter {
 
     public <R> RequestExecution asyncDelete(final Callback<OperationResult<ClientRole>, R> callback) {
         final JerseyRequest<ClientRole> request = buildRequest(ClientRole.class);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {

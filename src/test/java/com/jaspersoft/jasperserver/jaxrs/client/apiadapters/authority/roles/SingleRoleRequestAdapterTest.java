@@ -52,21 +52,21 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
 
     @Mock
     private JerseyRequest<ClientRole> jerseyRequestMock;
-
     @Mock
     private OperationResult<ClientRole> expectedOpResultMock;
 
+
     @Mock
     private OperationResult<RolesListWrapper> rolesListWrapperOperationResultMock;
+    @Mock
+    private JerseyRequest<RolesListWrapper> rolesListWrapperJerseyRequestMock;
+
 
     @Mock
     private Callback<OperationResult<ClientRole>, Object> callbackMock;
-
     @Mock
     private Callback<OperationResult<RolesListWrapper>, Object> callback2;
 
-    @Mock
-    private JerseyRequest<RolesListWrapper> rolesListWrapperJerseyRequestMock;
 
     @BeforeMethod
     public void before() {
@@ -80,7 +80,7 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
         assertEquals(roleUriPrefix, "/roles/roleName");
     }
 
-    @Test(timeOut = 2500)
+    @Test(enabled = false)
     public void asyncDelete() throws Exception {
 
         // Given
@@ -95,6 +95,45 @@ public class SingleRoleRequestAdapterTest extends PowerMockTestCase {
         // Than
         PowerMockito.verifyPrivate(adapterSpy, times(1)).invoke("buildRequest", eq(ClientRole.class));
         Mockito.verify(callbackMock, times(1)).execute(expectedOpResultMock);
+    }
+
+    @Test
+    public void should_delete_role_asynchronously() throws Exception {
+
+        /* Given */
+        final AtomicInteger newThreadId = new AtomicInteger();
+        final int currentThreadId = (int) Thread.currentThread().getId();
+
+        SingleRoleRequestAdapter adapterSpy = PowerMockito.spy(new SingleRoleRequestAdapter(sessionStorageMock, "orgId", "roleName"));
+
+        final Callback<OperationResult<ClientRole>, Void> callback = Mockito.spy(new Callback<OperationResult<ClientRole>, Void>() {
+            @Override
+            public Void execute(OperationResult<ClientRole> data) {
+                newThreadId.set((int) Thread.currentThread().getId());
+                synchronized (this) {
+                    this.notify();
+                }
+                return null;
+            }
+        });
+
+        PowerMockito.doReturn(jerseyRequestMock).when(adapterSpy, "buildRequest", ClientRole.class);
+        Mockito.doReturn(expectedOpResultMock).when(jerseyRequestMock).delete();
+        Mockito.doReturn(null).when(callback).execute(expectedOpResultMock);
+
+        /* When */
+        RequestExecution retrieved = adapterSpy.asyncDelete(callback);
+
+        /* Wait */
+        synchronized (callback) {
+            callback.wait(1000);
+        }
+
+        /* Than */
+        assertNotNull(retrieved);
+        assertNotSame(currentThreadId, newThreadId.get());
+        verify(callback, times(1)).execute(expectedOpResultMock);
+        verify(jerseyRequestMock, times(1)).delete();
     }
 
     @Test

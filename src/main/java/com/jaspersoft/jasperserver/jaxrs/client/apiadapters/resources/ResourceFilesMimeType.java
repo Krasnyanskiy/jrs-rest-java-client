@@ -21,7 +21,7 @@
 
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources;
 
-public enum  ResourceFilesMimeType {
+public enum ResourceFilesMimeType {
 
     PDF("application/pdf"),
     HTML("text/html"),
@@ -42,12 +42,11 @@ public enum  ResourceFilesMimeType {
     XML("application/xml"),
     CSS("text/css"),
     ACCES_GRANT_SCHEMA("application/accessGrantSchema"),
-    OLAP_MONDRIAN_SCHEMA("application/olapMondrianSchema")
-    ;
+    OLAP_MONDRIAN_SCHEMA("application/olapMondrianSchema");
 
     private String type;
 
-    private ResourceFilesMimeType(String type){
+    private ResourceFilesMimeType(String type) {
         this.type = type;
     }
 

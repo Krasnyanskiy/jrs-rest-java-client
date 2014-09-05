@@ -184,82 +184,57 @@ public class SingleResourceAdapter extends AbstractAdapter {
     }
 
     private JerseyRequest<ClientResource> prepareCopyOrMoveRequest(String fromUri) {
-        JerseyRequest<ClientResource> request =
-                buildRequest(sessionStorage, ClientResource.class, new String[]{"/resources", resourceUri}, new DefaultErrorHandler());
+        JerseyRequest<ClientResource> request = buildRequest(sessionStorage, ClientResource.class, new String[]{"/resources", resourceUri}, new DefaultErrorHandler());
         request.addParams(params);
         request.addHeader("Content-Location", fromUri);
         return request;
     }
 
-    public OperationResult<ClientFile> uploadFile(File fileContent,
-                                                  ClientFile.FileType fileType,
-                                                  String label,
-                                                  String description) {
-
+    public OperationResult<ClientFile> uploadFile(File fileContent, ClientFile.FileType fileType, String label, String description) {
         FormDataMultiPart form = prepareUploadForm(fileContent, fileType, label, description);
         JerseyRequest<ClientFile> request = prepareUploadFileRequest();
-
         return request.post(form);
     }
 
-    private <R> RequestExecution asyncUploadFile(final File fileContent,
-                                                 final ClientFile.FileType fileType,
-                                                 final String label,
-                                                 final String description,
-                                                 final Callback<OperationResult<ClientFile>, R> callback) {
-
+    public <R> RequestExecution asyncUploadFile(final File fileContent, final ClientFile.FileType fileType, final String label, final String description, final Callback<OperationResult<ClientFile>, R> callback) {
         final FormDataMultiPart form = prepareUploadForm(fileContent, fileType, label, description);
         final JerseyRequest<ClientFile> request = prepareUploadFileRequest();
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(form));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
-    private FormDataMultiPart prepareUploadForm(File fileContent,
-                                                ClientFile.FileType fileType,
-                                                String label,
-                                                String description) {
+    private FormDataMultiPart prepareUploadForm(File fileContent, ClientFile.FileType fileType, String label, String description) {
         FormDataMultiPart form = new FormDataMultiPart();
-        form
-                .field("data", fileContent, MediaType.WILDCARD_TYPE)
-                .field("label", label)
-                .field("description", description)
-                .field("type", fileType.name());
+        form.field("data", fileContent, MediaType.WILDCARD_TYPE).field("label", label).field("description", description).field("type", fileType.name());
         return form;
     }
 
     private JerseyRequest<ClientFile> prepareUploadFileRequest() {
-        JerseyRequest<ClientFile> request =
-                buildRequest(sessionStorage, ClientFile.class, new String[]{"/resources", resourceUri});
+        JerseyRequest<ClientFile> request = buildRequest(sessionStorage, ClientFile.class, new String[]{"/resources", resourceUri});
         request.addParams(params);
         request.setContentType(MediaType.MULTIPART_FORM_DATA);
         return request;
     }
 
     public OperationResult delete() {
-        JerseyRequest request =
-                buildRequest(sessionStorage, Object.class, new String[]{"/resources", resourceUri});
+        JerseyRequest request = buildRequest(sessionStorage, Object.class, new String[]{"/resources", resourceUri});
         return request.delete();
     }
 
     public <R> RequestExecution asyncDelete(final Callback<OperationResult, R> callback) {
-        final JerseyRequest request =
-                buildRequest(sessionStorage, Object.class, new String[]{"/resources", resourceUri});
-
+        final JerseyRequest request = buildRequest(sessionStorage, Object.class, new String[]{"/resources", resourceUri});
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.delete());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -268,38 +243,27 @@ public class SingleResourceAdapter extends AbstractAdapter {
         throw new UnsupportedOperationException("Server doesn't return proper MIME-type to resolve entity type");
     }
 
-    public <ResourceType extends ClientResource> OperationResult<ResourceType> patchResource(
-            Class<ResourceType> resourceTypeClass, PatchDescriptor descriptor) {
-
+    public <ResourceType extends ClientResource> OperationResult<ResourceType> patchResource(Class<ResourceType> resourceTypeClass, PatchDescriptor descriptor) {
         JerseyRequest<ResourceType> request = preparePatchResourceRequest(resourceTypeClass);
         return request.post(descriptor);
     }
 
-    public <ResourceType extends ClientResource, R> RequestExecution asyncPatchResource(final Class<ResourceType> resourceTypeClass,
-                                                                                        final PatchDescriptor descriptor,
-                                                                                        final Callback<OperationResult<ResourceType>, R> callback) {
+    public <ResourceType extends ClientResource, R> RequestExecution asyncPatchResource(final Class<ResourceType> resourceTypeClass, final PatchDescriptor descriptor, final Callback<OperationResult<ResourceType>, R> callback) {
         final JerseyRequest request = preparePatchResourceRequest(resourceTypeClass);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.post(descriptor));
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
 
-    private <ResourceType extends ClientResource> JerseyRequest<ResourceType> preparePatchResourceRequest(
-            Class<ResourceType> resourceTypeClass) {
-        JerseyRequest<ResourceType> request =
-                buildRequest(sessionStorage, resourceTypeClass, new String[]{"/resources", resourceUri});
-        request.setAccept(
-                MimeTypeUtil.toCorrectContentMime(sessionStorage.getConfiguration(),
-                        ResourcesTypeResolverUtil.getMimeType(resourceTypeClass)));
+    private <ResourceType extends ClientResource> JerseyRequest<ResourceType> preparePatchResourceRequest(Class<ResourceType> resourceTypeClass) {
+        JerseyRequest<ResourceType> request = buildRequest(sessionStorage, resourceTypeClass, new String[]{"/resources", resourceUri});
+        request.setAccept(MimeTypeUtil.toCorrectContentMime(sessionStorage.getConfiguration(), ResourcesTypeResolverUtil.getMimeType(resourceTypeClass)));
         request.addHeader("X-HTTP-Method-Override", "PATCH");
         return request;
     }
-
 }

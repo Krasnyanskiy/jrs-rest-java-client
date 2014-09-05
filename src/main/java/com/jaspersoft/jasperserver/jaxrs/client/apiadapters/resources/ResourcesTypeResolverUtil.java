@@ -20,7 +20,6 @@
  */
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources;
 
-
 import com.jaspersoft.jasperserver.dto.resources.*;
 import com.jaspersoft.jasperserver.jaxrs.client.core.ResourceMediaType;
 
