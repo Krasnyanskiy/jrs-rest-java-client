@@ -31,7 +31,6 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ReportExecutionStatu
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
 
 public class ReportExecutionRequestBuilder extends AbstractAdapter {
-
     private final String requestId;
 
     public ReportExecutionRequestBuilder(SessionStorage sessionStorage, String requestId) {

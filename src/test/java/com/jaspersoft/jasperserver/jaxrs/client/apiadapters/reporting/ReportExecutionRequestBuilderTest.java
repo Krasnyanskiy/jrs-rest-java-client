@@ -9,7 +9,10 @@ import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ExportExecutionDescr
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ExportExecutionOptions;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ReportExecutionDescriptor;
 import com.jaspersoft.jasperserver.jaxrs.client.dto.reports.ReportExecutionStatusEntity;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -20,6 +23,7 @@ import org.testng.annotations.Test;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jaspersoft.jasperserver.jaxrs.client.core.JerseyRequest.buildRequest;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -28,10 +32,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertSame;
 
 /**
  * Unit tests for {@link ReportExecutionRequestBuilder}
@@ -261,6 +268,78 @@ public class ReportExecutionRequestBuilderTest extends PowerMockTestCase {
         assertNotSame(currentThreadId, newThreadId.get());
         verify(callback, times(1)).execute(reportExecutionStatusEntityOperationResultMock);
         verify(reportExecutionStatusEntityJerseyRequestMock, times(1)).put(statusEntityMock);
+    }
+
+    @Test
+    public void should_1() {
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionStatusEntity.class), eq(new String[]{"/reportExecutions", "requestId", "/status"}))).thenReturn(reportExecutionStatusEntityJerseyRequestMock);
+        doReturn(reportExecutionStatusEntityOperationResultMock).when(reportExecutionStatusEntityJerseyRequestMock).get();
+        ReportExecutionRequestBuilder builderSpy = PowerMockito.spy(new ReportExecutionRequestBuilder(sessionStorageMock, "requestId"));
+
+        OperationResult<ReportExecutionStatusEntity> retrieved = builderSpy.status();
+        assertSame(retrieved, reportExecutionStatusEntityOperationResultMock);
+    }
+
+    @Test
+    public void should_2() {
+        mockStatic(JerseyRequest.class);
+        when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionDescriptor.class), eq(new String[]{"/reportExecutions", "requestId"}))).thenReturn(reportExecutionDescriptorJerseyRequestMock);
+        doReturn(reportExecutionDescriptorOperationResultMock).when(reportExecutionDescriptorJerseyRequestMock).get();
+        ReportExecutionRequestBuilder builderSpy = PowerMockito.spy(new ReportExecutionRequestBuilder(sessionStorageMock, "requestId"));
+
+        OperationResult<ReportExecutionDescriptor> retrieved = builderSpy.executionDetails();
+        assertSame(retrieved, reportExecutionDescriptorOperationResultMock);
+
+    }
+
+
+    @Test
+    public void should_3() {
+
+        ArgumentCaptor<ReportExecutionStatusEntity> captor = ArgumentCaptor.forClass(ReportExecutionStatusEntity.class);
+
+        mockStatic(JerseyRequest.class);
+        Mockito.when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionStatusEntity.class), eq(new String[]{"/reportExecutions", "requestId", "/status"}))).thenReturn(reportExecutionStatusEntityJerseyRequestMock);
+        Mockito.doReturn(resultMock).when(reportExecutionStatusEntityJerseyRequestMock).put(any(ReportExecutionStatusEntity.class));
+
+        ReportExecutionRequestBuilder builder = new ReportExecutionRequestBuilder(sessionStorageMock, "requestId");
+
+        OperationResult<ReportExecutionStatusEntity> retrieved = builder.cancelExecution();
+        assertSame(retrieved, resultMock);
+
+        verifyStatic();
+        buildRequest(eq(sessionStorageMock), eq(ReportExecutionStatusEntity.class), eq(new String[]{"/reportExecutions", "requestId", "/status"}));
+
+        verify(reportExecutionStatusEntityJerseyRequestMock).put(captor.capture());
+        assertEquals(captor.getValue().getValue(), "cancelled");
+    }
+
+    @Test
+    public void should_4() {
+
+        mockStatic(JerseyRequest.class);
+        Mockito.when(buildRequest(eq(sessionStorageMock), eq(ExportExecutionDescriptor.class), eq(new String[]{"/reportExecutions", "requestId", "/exports"}))).thenReturn(exportExecutionDescriptorJerseyRequestMock);
+        Mockito.doReturn(resultMock).when(exportExecutionDescriptorJerseyRequestMock).post(optionsMock);
+
+        ReportExecutionRequestBuilder builder = new ReportExecutionRequestBuilder(sessionStorageMock, "requestId");
+        OperationResult<ExportExecutionDescriptor> retrieved = builder.runExport(optionsMock);
+
+        verifyStatic();
+        buildRequest(eq(sessionStorageMock), eq(ExportExecutionDescriptor.class), eq(new String[]{"/reportExecutions", "requestId", "/exports"}));
+
+        assertNotNull(retrieved);
+        assertSame(retrieved, resultMock);
+    }
+
+    @Test
+    public void should_5() {
+
+        ReportExecutionRequestBuilder builder = new ReportExecutionRequestBuilder(sessionStorageMock, "requestId");
+        ExportExecutionRequestBuilder retrieved = builder.export("_id");
+
+        assertNotNull(retrieved);
+        assertEquals(Whitebox.getInternalState(retrieved, "exportId"), "_id");
     }
 
     @AfterMethod

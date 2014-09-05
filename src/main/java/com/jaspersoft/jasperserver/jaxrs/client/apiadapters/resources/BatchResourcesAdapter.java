@@ -52,14 +52,12 @@ public class BatchResourcesAdapter extends AbstractAdapter {
 
     public <R> RequestExecution asyncSearch(final Callback<OperationResult<ClientResourceListWrapper>, R> callback) {
         final JerseyRequest<ClientResourceListWrapper> request = getBuilder(ClientResourceListWrapper.class);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.get());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -70,14 +68,12 @@ public class BatchResourcesAdapter extends AbstractAdapter {
 
     public <R> RequestExecution asyncDelete(final Callback<OperationResult, R> callback) {
         final JerseyRequest request = getBuilder(Object.class);
-
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
             public void run() {
                 callback.execute(request.delete());
             }
         });
-
         ThreadPoolUtil.runAsynchronously(task);
         return task;
     }
@@ -87,5 +83,4 @@ public class BatchResourcesAdapter extends AbstractAdapter {
         request.addParams(params);
         return request;
     }
-
 }

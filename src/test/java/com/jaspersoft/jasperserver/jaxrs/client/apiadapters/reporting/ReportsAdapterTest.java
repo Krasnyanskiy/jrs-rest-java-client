@@ -82,20 +82,34 @@ public class ReportsAdapterTest extends PowerMockTestCase {
         verifyNew(ReportParametersAdapter.class, times(1)).withArguments(sessionStorageMock, "reportUnitUri", "1;2;3;4;5;");
     }
 
-    @Test(enabled = false)
-    public void should_convert_params_into_the_adapter() throws Exception {
+    @Test
+    public void should_convert_params_into_the_adapter_with_pages() throws Exception {
 
         /* Given */
-        ReportOutputFormat formatMock = PowerMockito.mock(ReportOutputFormat.class);
-        RunReportAdapter reportAdapterMock = PowerMockito.mock(RunReportAdapter.class);
-        PowerMockito.whenNew(RunReportAdapter.class).withArguments(sessionStorageMock, "reportUnitUri", formatMock, 1, 2, 3).thenReturn(reportAdapterMock);
         ReportsAdapter adapterSpy = new ReportsAdapter(sessionStorageMock, "reportUnitUri");
 
         /* When */
-        RunReportAdapter retrieved = adapterSpy.prepareForRun(formatMock, 1, 2, 3);
+        RunReportAdapter retrieved = adapterSpy.prepareForRun(ReportOutputFormat.PDF, 1, 2, 3);
 
         /* Than */
-        assertSame(retrieved, adapterMock);
+        assertSame(retrieved.getSessionStorage(), sessionStorageMock);
+        assertEquals(Whitebox.getInternalState(retrieved, "reportUnitUri"), "reportUnitUri");
+        assertEquals(Whitebox.getInternalState(retrieved, "pages"), new String[]{"1", "2", "3"});
+    }
+
+    @Test
+    public void should_convert_params_into_the_adapter_without_pages() throws Exception {
+
+        /* Given */
+        ReportsAdapter adapterSpy = new ReportsAdapter(sessionStorageMock, "reportUnitUri");
+
+        /* When */
+        RunReportAdapter retrieved = adapterSpy.prepareForRun(ReportOutputFormat.PDF, new PageRange(1, 10));
+
+        /* Than */
+        assertSame(retrieved.getSessionStorage(), sessionStorageMock);
+        assertEquals(Whitebox.getInternalState(retrieved, "reportUnitUri"), "reportUnitUri");
+        assertEquals(Whitebox.getInternalState(retrieved, "pages"), new String[]{"1-10"});
     }
 
     @AfterMethod

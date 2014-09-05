@@ -33,6 +33,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertSame;
 
 @PrepareForTest(JerseyRequest.class)
 public class ReportsAndJobsSearchAdapterTest extends PowerMockTestCase {
@@ -116,6 +117,26 @@ public class ReportsAndJobsSearchAdapterTest extends PowerMockTestCase {
         Assert.assertSame(retrieved, adapterSpy);
         Assert.assertTrue(params.size() == 1);
         Assert.assertEquals(params.getFirst(ReportAndJobSearchParameter.JOB_ID.getName()), "id");
+    }
+
+    @Test
+    /**
+     * for {@link ReportsAndJobsSearchAdapter#find()}
+     */
+    public void should_return_proper_ReportExecutionListWrapper_with_result_of_find_operation() {
+
+        mockStatic(JerseyRequest.class);
+        Mockito.when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionListWrapper.class), eq(new String[]{"/reportExecutions"}))).thenReturn(requestMock);
+        Mockito.doReturn(resultMock).when(requestMock).get();
+
+        ReportsAndJobsSearchAdapter adapter = new ReportsAndJobsSearchAdapter(sessionStorageMock);
+
+        OperationResult<ReportExecutionListWrapper> retrieved = adapter.find();
+
+        assertSame(retrieved, resultMock);
+        Mockito.verify(requestMock).get();
+        Mockito.verify(requestMock).addParams(any(MultivaluedHashMap.class));
+        Mockito.verifyNoMoreInteractions(requestMock);
     }
 
     @AfterMethod
