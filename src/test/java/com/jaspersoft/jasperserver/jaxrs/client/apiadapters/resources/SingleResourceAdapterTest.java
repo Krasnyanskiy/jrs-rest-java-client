@@ -72,6 +72,7 @@ public class SingleResourceAdapterTest extends PowerMockTestCase {
     @Mock
     private PatchDescriptor descriptorMock;
 
+
     @Mock
     private JerseyRequest<ClientResource> jerseyRequestMock;
     @Mock
