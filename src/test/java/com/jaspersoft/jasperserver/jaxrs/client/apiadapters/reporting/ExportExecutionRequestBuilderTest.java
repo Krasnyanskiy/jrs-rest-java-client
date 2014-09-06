@@ -150,18 +150,18 @@ public class ExportExecutionRequestBuilderTest extends PowerMockTestCase {
         final AtomicInteger newThreadId = new AtomicInteger();
         final int currentThreadId = (int) Thread.currentThread().getId();
 
-        ExportExecutionRequestBuilder builderSpy = spy(new ExportExecutionRequestBuilder(sessionStorageMock, requestId, exportId));
+        ExportExecutionRequestBuilder builderSpy = Mockito.spy(new ExportExecutionRequestBuilder(sessionStorageMock, requestId, exportId));
 
         mockStatic(JerseyRequest.class);
-        when(buildRequest(eq(sessionStorageMock), eq(InputStream.class), eq(new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId}))).thenReturn(streamJerseyRequestMock);
-        when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionStatusEntity.class), eq(new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"}))).thenReturn(entityJerseyRequestMock);
+        Mockito.when(buildRequest(eq(sessionStorageMock), eq(InputStream.class), eq(new String[]{"/reportExecutions", requestId, "/exports", exportId, "/attachments", attachmentId}))).thenReturn(streamJerseyRequestMock);
+        Mockito.when(buildRequest(eq(sessionStorageMock), eq(ReportExecutionStatusEntity.class), eq(new String[]{"/reportExecutions", requestId, "/exports", exportId, "/status"}))).thenReturn(entityJerseyRequestMock);
 
-        doReturn(statusEntityOperationResultMock).when(entityJerseyRequestMock).get();
-        doReturn(streamedResultMock).when(streamJerseyRequestMock).get();
-        doReturn(statusEntityMock).when(statusEntityOperationResultMock).getEntity();
-        doReturn("execution").doReturn("ready").when(statusEntityMock).getValue();
+        Mockito.doReturn(statusEntityOperationResultMock).when(entityJerseyRequestMock).get();
+        Mockito.doReturn(streamedResultMock).when(streamJerseyRequestMock).get();
+        Mockito.doReturn(statusEntityMock).when(statusEntityOperationResultMock).getEntity();
+        Mockito.doReturn("execution").doReturn("ready").when(statusEntityMock).getValue();
 
-        final Callback<OperationResult<InputStream>, Void> callback = spy(new Callback<OperationResult<InputStream>, Void>() {
+        final Callback<OperationResult<InputStream>, Void> callback = Mockito.spy(new Callback<OperationResult<InputStream>, Void>() {
             @Override
             public Void execute(OperationResult<InputStream> data) {
                 newThreadId.set((int) Thread.currentThread().getId());

@@ -26,9 +26,6 @@ public class MimeTypeUtil {
     private static final String JSON_SUFFIX = "json";
     private static final String XML_SUFFIX = "xml";
 
-//    private static final String JSON_SUFFIX = "JSON";
-//    private static final String XML_SUFFIX = "XML";
-
     public static String toCorrectContentMime(RestClientConfiguration configuration, String srcMime) {
         if (srcMime.endsWith("{mime}")) {
             return srcMime.replace("{mime}", configuration.getContentMimeType() == MimeType.JSON ? JSON_SUFFIX : XML_SUFFIX);

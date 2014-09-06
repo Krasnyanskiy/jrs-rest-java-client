@@ -3,6 +3,7 @@ package com.jaspersoft.jasperserver.jaxrs.client.core.operationresult;
 import com.jaspersoft.jasperserver.dto.resources.ClientDashboard;
 import com.jaspersoft.jasperserver.dto.resources.ClientFolder;
 import com.jaspersoft.jasperserver.dto.resources.ClientQuery;
+import com.jaspersoft.jasperserver.dto.resources.ClientVirtualDataSource;
 import com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources.ResourcesTypeResolverUtil;
 import com.jaspersoft.jasperserver.jaxrs.client.core.support.TestableClientResource;
 import org.mockito.Mock;
@@ -155,6 +156,13 @@ public class OperationResultFactoryImplTest extends PowerMockTestCase {
 
         PowerMockito.verifyStatic(times(1));
         ResourcesTypeResolverUtil.getClassForMime(anyString());
+    }
+
+    @Test
+    public void should_() {
+        OperationResultFactoryImpl factory = new OperationResultFactoryImpl();
+        OperationResult<ClientVirtualDataSource> retrieved = factory.getOperationResult(responseMock, ClientVirtualDataSource.class);
+
     }
 
     @AfterMethod

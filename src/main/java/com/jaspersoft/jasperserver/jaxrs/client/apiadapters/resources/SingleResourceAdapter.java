@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Affero General Public  License
  * along with this program.&nbsp; If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.jaspersoft.jasperserver.jaxrs.client.apiadapters.resources;
 
 import com.jaspersoft.jasperserver.dto.common.PatchDescriptor;
@@ -165,7 +164,7 @@ public class SingleResourceAdapter extends AbstractAdapter {
         }
     }
 
-    private <R> RequestExecution asyncCopyOrMove(final boolean moving, final String fromUri, final Callback<OperationResult<ClientResource>, R> callback) {
+    public <R> RequestExecution asyncCopyOrMove(final boolean moving, final String fromUri, final Callback<OperationResult<ClientResource>, R> callback) {
         final JerseyRequest<ClientResource> request = prepareCopyOrMoveRequest(fromUri);
         RequestExecution task = new RequestExecution(new Runnable() {
             @Override
@@ -248,6 +247,7 @@ public class SingleResourceAdapter extends AbstractAdapter {
         return request.post(descriptor);
     }
 
+    @SuppressWarnings("unchecked")
     public <ResourceType extends ClientResource, R> RequestExecution asyncPatchResource(final Class<ResourceType> resourceTypeClass, final PatchDescriptor descriptor, final Callback<OperationResult<ResourceType>, R> callback) {
         final JerseyRequest request = preparePatchResourceRequest(resourceTypeClass);
         RequestExecution task = new RequestExecution(new Runnable() {
