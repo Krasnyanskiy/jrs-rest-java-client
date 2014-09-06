@@ -66,7 +66,7 @@ public class ThreadPoolUtilTest extends PowerMockTestCase {
         verify(serviceMock).submit(runnableMock);
     }
 
-    @Test(priority = 2, enabled = true) // priority needs to avoid fail while execution Reflection operations
+    @Test(priority = 2, enabled = true) // priority needs to avoid crash during execution of Reflection operations
     public void magic() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor<ThreadPoolUtil> constructor = ThreadPoolUtil.class.getDeclaredConstructor();
         constructor.setAccessible(true);
